@@ -1,0 +1,8 @@
+KERNEL=="sd[a-z]1", ACTION=="add", SUBSYSTEM=="usb", RUN+="/usr/local/sbin/tetras-back ADD %k"
+KERNEL=="sd[a-z]1", ACTION=="remove", SUBSYSTEM=="usb", RUN+="/usr/local/sbin/tetras-back DEL %k"
+
+KERNEL=="sd[a-z]1", ACTION=="add", SUBSYSTEM=="scsi", RUN+="/usr/local/sbin/tetras-back ADD %k"
+KERNEL=="sd[a-z]1", ACTION=="remove", SUBSYSTEM=="scsi", RUN+="/usr/local/sbin/tetras-back DEL %k"
+
+KERNEL=="sd[a-z]1", ACTION=="add", SUBSYSTEM=="block", RUN+="/usr/local/sbin/tetras-back ADD %k"
+KERNEL=="sd[a-z]1", ACTION=="remove", SUBSYSTEM=="block", RUN+="/usr/local/sbin/tetras-back DEL %k"

@@ -16,8 +16,8 @@
 
 NAME=tetras-back
 PREFIX=/usr/local
-BINDIR=$(PREFIX)/bin
-SCRIPTS_DIR=$(PREFIX)/lib/
+BINDIR=$(PREFIX)/sbin
+SCRIPTS_DIR=$(PREFIX)/lib/$(NAME)
 RULES_DIR=/etc/udev/rules.d
 RULE_NAME=50-$(NAME).rules
 WEB_PREFIX=/var/www/
@@ -29,18 +29,21 @@ all: install
 install: start_daemon
 
 start_daemon: daemon
-	systemctl start $(NAME).service
+	systemctl restart $(NAME).service
 
-daemon: rule web
+daemon: rule
 	@echo "Installing main daemon"
-	mkdir $(BINDIR)
+	mkdir -p $(BINDIR)
 	cp src/$(NAME) $(BINDIR)/
+	mkdir -p $(SCRIPTS_DIR)
 	cp src/scripts/* $(SCRIPTS_DIR)/
 	@echo "Installing configuration file"
-	mkdir /etc/$(NAME)
+	mkdir -p /etc/$(NAME)
 	cp src/configuration.pl	/etc/$(NAME)
+	echo "'scriptdir' => '$(SCRIPTS_DIR)'\n)" >> /etc/$(NAME)/configuration.pl
 	@echo "Creating systemd service"
 	cp src/service/$(NAME).service $(SERVICE_DIR)/
+	sed -i -e "s@\(ExecStart=\).*@\1$(BINDIR)/$(NAME)@"  $(SERVICE_DIR)/$(NAME).service
 	@echo "Reloading systemd"
 	systemctl daemon-reload
 
@@ -65,4 +68,7 @@ clean-web:
 	rm -rf $(WEB_PREFIX)/$(NAME)
 
 uninstall:
-	rm -rf $(WEB_PREFIX)/$(NAME) $(BINDIR)/$(NAME) $(RULES_DIR)/$(RULE_NAME)
+	systemctl disable tetras-back
+	rm -rf $(WEB_PREFIX)/$(NAME) $(BINDIR)/$(NAME) $(RULES_DIR)/$(RULE_NAME) $(SERVICE_DIR)/$(NAME).service
+	systemctl daemon-reload
+	systemctl restart udev
