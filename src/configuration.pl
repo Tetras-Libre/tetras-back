@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 %CFG = (
-    'DISCS' => {
+    'DISKS' => {
     },
     'SCRIPTS' => (
         'backup_demo-tibox.sh'

@@ -6,12 +6,6 @@ use POSIX;
 use IO::Handle;
 use Data::Dumper;
 
-$SIG{INT} = sub { do_stop("SIGINT")};
-
-mkfifo($CFG::CFG{'fifo'},700); # or die "Can'tcreate fifo $CFG::CFG{'fifo'}";
-open FIFO, "+<", $CFG::CFG{'fifo'} or die "Can't read from $CFG::CFG{'fifo'}";
-open LOG,  ">>", $CFG::CFG{logfile};
-LOG->autoflush;
 my $MESSAGE = "";
 my $backup_in_progress = 0;
 
@@ -106,7 +100,7 @@ sub do_backup($){
     # Start each script
     for my $scr ($CFG::CFG{'SCRIPTS'}){
         do_log("Lancement du script de sauvegarde $scr");
-        my $exit_code=system("echo $CFG::CFG{'scriptdir'}/$scr $disc >> $CFG::CFG{logfile} 2>&1");
+        my $exit_code=system("$CFG::CFG{'scriptdir'}/$scr $disc >> $CFG::CFG{logfile} 2>&1");
         if ( $exit_code != 0 ){
             $error = 1;
         }
@@ -150,8 +144,15 @@ sub do_sendmail($$){
 # Retrieve uuid of given device
 sub get_blkid($){
     my $dev = shift;
-    system("blkid $dev") =~ /.*uuid=\"([^\"]*)\".*/;
-    return $1;
+    do_log("Looking  blkid for device '$dev'");
+    my $ret = `blkid $dev`;
+    $ret =~ s/^.* UUID="([^"]*)".*$/$1/s;
+    return $ret;
+}
+
+# Tel web page that there is a new disc
+sub new_disc($){
+    do_log("NEW command not implemented yet");
 }
 
 # Get our configuration information
@@ -167,14 +168,22 @@ if (scalar @ARGV > 1){
     exit;
 }
 
+$SIG{INT} = sub { do_stop("SIGINT")};
+mkfifo($CFG::CFG{'fifo'},700); # or die "Can'tcreate fifo $CFG::CFG{'fifo'}";
+open FIFO, "+<", $CFG::CFG{'fifo'} or die "Can't read from $CFG::CFG{'fifo'}";
+open LOG,  ">>", $CFG::CFG{logfile};
+LOG->autoflush;
+
+print "before while\n";
 # Read fifo
 while(my $line = <FIFO>){
-    do_log("Read something '$line'");
-    if ($line =~ /ADD .*/){
+    if ($line =~ /ADD (.*)/){
+        print "ADD\n";
         my $dev=$1;
         do_log("Disque connecte $dev");
         # Retrieve disk UUID
         my $uuid = get_blkid($dev);
+        do_log("UUID: '$uuid'");
         # Check if disc known
         if(exists($CFG::CFG{DISKS}{$uuid})){
             # known disc
@@ -183,17 +192,20 @@ while(my $line = <FIFO>){
             # New disc
             new_disc($dev)
         }
-    }elsif ($line =~ /DEL .*/){
+    }elsif ($line =~ /DEL (.*)/){
+        print "DEL\n";
         do_log("Disque retire $1");
         if( $backup_in_progress != 0 ){
             do_sendmail("Disque arraché pendant la sauvegarde",
             "Le disque dur à été arraché durant la sauvegarde qui sera donc incomplète.
             Veuillez relancer une sauvegarde dès que possible.");
         }
-    }elsif ($line =~ /SAVE [^ ]* .*/){
+    }elsif ($line =~ /SAVE ([^ ]*) (.*)/){
+        print "SAVE\n";
         # Add the disc as known
         my $uuid=$1;
         my $name=$2;
+        do_log("Saving uuid:'$1' ,name:'$2'");
         $CFG::CFG{DISKS}{$uuid}=$name;
         # Save our configuration file
         if (my $err = SaveCfg('/etc/tetras-back/configuration.pl')) {
@@ -201,9 +213,11 @@ while(my $line = <FIFO>){
         }
     }
     else{
+        print "ELSE\n";
         do_log("Commande inconnue : '$line'");
         do_sendmail("Erreur: commande inconnue",
             "Je viens de recevoir la commande '$line' que je ne sais pas traiter");
     }
 }
+print "END\n";
 do_stop("Impossible end of fifo");

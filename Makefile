@@ -34,13 +34,16 @@ start_daemon: daemon
 daemon: rule
 	@echo "Installing main daemon"
 	mkdir -p $(BINDIR)
+	perl -c src/$(NAME)
 	cp src/$(NAME) $(BINDIR)/
 	mkdir -p $(SCRIPTS_DIR)
 	cp src/scripts/* $(SCRIPTS_DIR)/
+	chmod u+x $(SCRIPTS_DIR)/*
 	@echo "Installing configuration file"
 	mkdir -p /etc/$(NAME)
 	cp src/configuration.pl	/etc/$(NAME)
 	echo "'scriptdir' => '$(SCRIPTS_DIR)'\n)" >> /etc/$(NAME)/configuration.pl
+	perl -c /etc/$(NAME)/configuration.pl
 	@echo "Creating systemd service"
 	cp src/service/$(NAME).service $(SERVICE_DIR)/
 	sed -i -e "s@\(ExecStart=\).*@\1$(BINDIR)/$(NAME)@"  $(SERVICE_DIR)/$(NAME).service
