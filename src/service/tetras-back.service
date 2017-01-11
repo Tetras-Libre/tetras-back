@@ -5,7 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/sbin/tetras-back
+ExecStop=/usr/local/sbin/tetras-back --stop
+ExecStart=/usr/local/sbin/tetras-back --daemon
 Restart=on-fail
 
 

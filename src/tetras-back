@@ -5,18 +5,24 @@ use MIME::Lite;
 use POSIX;
 use IO::Handle;
 use Data::Dumper;
+use Getopt::ArgParse;
+use Cpanel::JSON::XS qw(encode_json);
+use Data::Dumper;
+use threads ('yield',
+    'stack_size' => 64*4096,
+    'exit' => 'threads_only',
+    'stringify');
 
 my $MESSAGE = "";
-my $backup_in_progress = 0;
+our $CFGFILE = "/etc/tetras-back/configuration.pl";
 
-# Read/WriteCfg snippet from 
+# Read/SaveCfg snippet from
 # http://www.perlmonks.org/?displaytype=print;node_id=464358
 # Read a configuration file
 #   The arg can be a relative or full path, or
 #   it can be a file located somewhere in @INC.
-sub ReadCfg
-{
-    my $file = $_[0];
+sub ReadCfg{
+    my $file =  $_[0];
 
     our $err;
 
@@ -35,7 +41,6 @@ sub ReadCfg
             $::err = "ERROR: Failure processing '$file'";
         }
     }
-
     return ($err);
 }
 
@@ -44,7 +49,7 @@ sub ReadCfg
 #   so that file can be found in the %INC.
 sub SaveCfg
 {
-    my $file = $INC{$_[0]};
+    my $file =  $_[0];
 
     my $CFG;
     if (! open($CFG, "> $file")) {
@@ -54,7 +59,7 @@ sub SaveCfg
     print $CFG <<_MARKER_;
 #####
 #
-# My configuration file
+# Tetras-back configuration file
 #
 #####
 
@@ -69,14 +74,21 @@ our (%CFG);
 # EOF
 _MARKER_
 
-    close($CFG);
-    return (undef);   # Success
+close($CFG);
+return (undef);   # Success
+}
+
+sub save_config{
+    if (my $err = SaveCfg($CFGFILE)) {
+        print(STDERR $err, "\n");
+        exit(1);
+    }
 }
 
 # Stop with message given in argument
 sub do_stop($){
     my $message = shift;
-    do_log("Stop requested :'$message', quitting");
+    do_log("Arret demandé :'$message', arret du daemon");
     close LOG;
     close FIFO;
     unlink $CFG::CFG{'fifo'};
@@ -90,15 +102,24 @@ sub do_log($){
     $MESSAGE .= "$message\n";
 }
 
+sub notify(){
+    my $json = encode_json($CFG::CFG{DISKS});
+    for my $client (keys %{$CFG::CFG{CLIENTS}}){
+        open CLI, ">>", $client or die "Can't write to $client";
+        print CLI "$json\n";
+        close CLI
+    }
+}
+
 # Trigger a backup on device give in argument ex /dev/sdc1
 sub do_backup($){
+    # TODO: thread
     my $disc = shift;
     $MESSAGE = "";
     my $error = 0 ;
     do_log("Demarrage de la sauvegarde sur le disque: $disc");
-    $backup_in_progress = 1;
     # Start each script
-    for my $scr ($CFG::CFG{'SCRIPTS'}){
+    for my $scr (@{$CFG::CFG{'SCRIPTS'}}){
         do_log("Lancement du script de sauvegarde $scr");
         my $exit_code=system("$CFG::CFG{'scriptdir'}/$scr $disc >> $CFG::CFG{logfile} 2>&1");
         if ( $exit_code != 0 ){
@@ -106,15 +127,17 @@ sub do_backup($){
         }
         do_log("Script de sauvegarde $scr terminé");
     }
-    $backup_in_progress = 0;
+    my $status = "backup_completed";
     if( $error == 0 ){
         do_sendmail("Sauvegarde finie",
             "La sauvegarde c'est termine correctement, vous pouvez maintenant debrancher le disque dur");
     }else{
         do_sendmail("Echec de la sauvegarde",
-            "La sauvegarde c'est terminée avec au moins une erreur et est donc probablement incomplète.
+            "La sauvegarde c'est terminée avec au moins une erreur et est donc probablement incomplète, avez vous arraché le disque pendant la sauvegarde ?
             Essayez de débrancher et rebrancher le disque, si l'erreur persiste contactez vos administrateur.ice.s système au plus vite");
+        $status = "backup_failed";
     }
+    $CFG::CFG{DISKS}{KNOWN}{get_uuid($disc)}{last_backup}=$status." ".time();
 }
 
 # Send subject, message by email to root
@@ -127,22 +150,22 @@ sub do_sendmail($$){
     my $from = 'tetras-back';
 
     my $msg = MIME::Lite->new(
-                     From     => $from,
-                     To       => $to,
-                     Cc       => $cc,
-                     Subject  => "[Tetras-back] $subject",
-                     Type     => 'multipart/mixed'
-                     );
+        From     => $from,
+        To       => $to,
+        Cc       => $cc,
+        Subject  => "[Tetras-back] $subject",
+        Type     => 'multipart/mixed'
+    );
     # Add your text message.
     $msg->attach(Type         => 'text',
-                 Data         => $MESSAGE,
-                );
+        Data         => $MESSAGE,
+    );
     $msg->send;
     do_log("Etat envoyé par email\n");
 }
 
 # Retrieve uuid of given device
-sub get_blkid($){
+sub get_uuid($){
     my $dev = shift;
     do_log("Looking  blkid for device '$dev'");
     my $ret = `blkid $dev`;
@@ -150,74 +173,151 @@ sub get_blkid($){
     return $ret;
 }
 
-# Tel web page that there is a new disc
-sub new_disc($){
-    do_log("NEW command not implemented yet");
+sub start_daemon(){
+    $SIG{INT} = sub { do_stop("SIGINT")};
+    $SIG{CHILD} = sub { save_config(); notify(); };
+    mkfifo($CFG::CFG{'fifo'},700) or die "Can't create fifo $CFG::CFG{'fifo'} is a daemon already running ?";
+    open FIFO, "+<", $CFG::CFG{'fifo'} or die "Can't read from $CFG::CFG{'fifo'}";
+    open LOG,  ">>", $CFG::CFG{logfile};
+    LOG->autoflush;
+
+    # Read fifo
+    while(my $line = <FIFO>){
+        if ($line =~ /^PLUG (.*)$/){
+            my $dev=$1;
+            do_log("Disque connecte $dev");
+            # Retrieve disk UUID
+            my $uuid = get_uuid($dev);
+            # Mark disc as present
+            $CFG::CFG{DISKS}{CONNECTED}{$uuid}=time();
+            # Check if disc known
+            if(exists($CFG::CFG{DISKS}{KNOWN}{$uuid})){
+                # known disc
+                $CFG::CFG{DISKS}{KNOWN}{$uuid}{'last_seen'}=time();
+                save_config();
+                notify();
+                threads->create('do_backup', $dev);
+            }else{
+                save_config();
+                notify();
+            }
+        }elsif ($line =~ /^UNPLUG (.*)$/){
+            do_log("Disque retire $1");
+            my $uuid = get_uuid($1);
+            # Remove uuid from connected
+            delete $CFG::CFG{DISKS}{CONNECTED}{$uuid};
+            # update last seen
+            if(exists($CFG::CFG{DISKS}{KNOWN}{$uuid})){
+                $CFG::CFG{DISKS}{KNOWN}{$uuid}{'last_seen'}=time();
+            }
+            save_config();
+            notify();
+        }elsif ($line =~ /^SAVE ([^ ]*) (.*)$/){
+            # Add the disc as known
+            my $uuid=$1;
+            my $name=$2;
+            do_log("Saving uuid:'$1' ,name:'$2'");
+            $CFG::CFG{DISKS}{KNOWN}{$uuid}={
+                name => $name,
+                last_seen => time(),
+                last_backup => 'Never'
+            };
+            # Save our configuration file
+            save_config();
+            notify();
+        }elsif ($line =~/^FORGET (.*)$/){
+            # Remove the disk
+            my $uuid=$1;
+            my $name=$CFG::CFG{DISKS}{KNOWN}{$uuid}{name};
+            delete $CFG::CFG{DISKS}{KNOWN}{$uuid};
+            do_log("forgetting uuid:'$1' ,name:'$2'");
+            save_config();
+            notify();
+        }elsif ($line =~ /^STOP$/){
+            do_stop("Stop required by CLI");
+        }elsif ($line =~ /^REGISTER (.*)$/){
+            $CFG::CFG{CLIENTS}{$1} = time();
+            save_config();
+            do_log("Registering client FIFO $1");
+        }elsif ($line =~ /^UNREGISTER (.*)$/){
+            delete $CFG::CFG{CLIENTS}{$1};
+            save_config();
+            print "\n";
+            do_log("Unregistering client FIFO $1");
+        }else{
+            do_log("Commande inconnue : '$line'");
+            do_sendmail("Erreur: commande inconnue",
+                "Je viens de recevoir la commande '$line' que je ne sais pas traiter");
+        }
+    }
 }
 
-# Get our configuration information
-if (my $err = ReadCfg('/etc/tetras-back/configuration.pl')) {
-    do_stop($err);
-}
 
-# Forward request to fifo
-if (scalar @ARGV > 1){
+# Forward the given command to the daemon
+sub send_command($){
+    my $cmd=shift;
     open FIFO, ">>", $CFG::CFG{'fifo'} or die "Can't write to $CFG::CFG{'fifo'}";
-    print FIFO @ARGV;
+    print FIFO "$cmd\n";
     close FIFO;
     exit;
 }
 
-$SIG{INT} = sub { do_stop("SIGINT")};
-mkfifo($CFG::CFG{'fifo'},700); # or die "Can'tcreate fifo $CFG::CFG{'fifo'}";
-open FIFO, "+<", $CFG::CFG{'fifo'} or die "Can't read from $CFG::CFG{'fifo'}";
-open LOG,  ">>", $CFG::CFG{logfile};
-LOG->autoflush;
-
-print "before while\n";
-# Read fifo
-while(my $line = <FIFO>){
-    if ($line =~ /ADD (.*)/){
-        print "ADD\n";
-        my $dev=$1;
-        do_log("Disque connecte $dev");
-        # Retrieve disk UUID
-        my $uuid = get_blkid($dev);
-        do_log("UUID: '$uuid'");
-        # Check if disc known
-        if(exists($CFG::CFG{DISKS}{$uuid})){
-            # known disc
-            do_backup($dev);
-        }else{
-            # New disc
-            new_disc($dev)
-        }
-    }elsif ($line =~ /DEL (.*)/){
-        print "DEL\n";
-        do_log("Disque retire $1");
-        if( $backup_in_progress != 0 ){
-            do_sendmail("Disque arraché pendant la sauvegarde",
-            "Le disque dur à été arraché durant la sauvegarde qui sera donc incomplète.
-            Veuillez relancer une sauvegarde dès que possible.");
-        }
-    }elsif ($line =~ /SAVE ([^ ]*) (.*)/){
-        print "SAVE\n";
-        # Add the disc as known
-        my $uuid=$1;
-        my $name=$2;
-        do_log("Saving uuid:'$1' ,name:'$2'");
-        $CFG::CFG{DISKS}{$uuid}=$name;
-        # Save our configuration file
-        if (my $err = SaveCfg('/etc/tetras-back/configuration.pl')) {
-            do_stop($err);
-        }
-    }
-    else{
-        print "ELSE\n";
-        do_log("Commande inconnue : '$line'");
-        do_sendmail("Erreur: commande inconnue",
-            "Je viens de recevoir la commande '$line' que je ne sais pas traiter");
-    }
+if (my $err = ReadCfg($CFGFILE)) {
+    print(STDERR $err, "\n");
+    exit(1);
 }
-print "END\n";
-do_stop("Impossible end of fifo");
+
+my $ap = Getopt::ArgParse->new_parser(
+    description => 'Programme modulaire de sauvegarde sur disque externe',
+);
+
+$ap->add_args(
+    ['--daemon', '-d', type=>'Bool', help=>'Start the daemon'],
+    ['--stop', type=>'Bool', help=>'Stop the daemon'],
+    ['--register', '-r', type=>'Scalar', metavar=>"FIFO",
+        help=>'register a fifo to notify events'],
+    ['--leave', '-l', type=>'Scalar', metavar=>"FIFO",
+        help=>'end notifications to FIFO'],
+    ['--forget', '-f', type=>'Scalar', metavar=>"UUID",
+        help=>'Forget the given disc'],
+    ['--save', '-s', type=>'Pair', split=>' ', metavar=>'UUID=NAME',
+        help=>'Mark disc UUID as known under name'],
+    ['--plug', '-p', type=>'Scalar', metavar=>"device",
+        help=>"Notify $0 that a given device has been pluged, should be called by udev rule"],
+    ['--unplug', '-u', type=>'Scalar', metavar=>"device",
+        help=>"Notify $0 that a given device has been unpluged, should be called by udev rule"],
+);
+my  $arguments = $ap->parse_args();
+
+#print $arguments->get_attr('plug');
+#print Dumper \$arguments;
+#print "\n";
+print Dumper (keys %CFG::CFG);
+print Dumper (values %CFG::CFG);
+#print $CFG::CFG{'fifo'};
+
+if ($arguments->get_attr('daemon')){
+    start_daemon();
+}elsif($arguments->get_attr('stop')){
+    if ( -e $CFG::CFG{'fifo'}){
+        send_command("STOP");
+    }
+}elsif($arguments->get_attr('register')){
+    send_command("REGISTER ".$arguments->get_attr('register'));
+}elsif($arguments->get_attr('leave')){
+    send_command("UNREGISTER ".$arguments->get_attr('leave'));
+}elsif(scalar %{$arguments->get_attr('save')} != 0){
+    my ($uuid, $name) = %{$arguments->get_attr('save')};
+    print "$uuid $name\n";
+    send_command("SAVE $uuid $name");
+}elsif($arguments->get_attr('forget')){
+    send_command("FORGET ".$arguments->get_attr('forget'));
+}elsif($arguments->get_attr('plug')){
+    send_command("PLUG ".$arguments->get_attr('plug'));
+}elsif($arguments->get_attr('unplug')){
+    send_command("UNPLUG ".$arguments->get_attr('unplug'));
+}else{
+    print "Please enter one command\n";
+    $ap->print_usage;
+    exit(1);
+}
