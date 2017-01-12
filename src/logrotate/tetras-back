@@ -1,0 +1,18 @@
+/var/log/tetras-back/*.log {
+        rotate 4
+        weekly
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+}
+/var/log/tetras-back/message.log {
+        rotate 4
+        daily
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+}

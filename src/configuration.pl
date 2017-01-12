@@ -1,8 +1,13 @@
 #!/usr/bin/perl
 
 %CFG = (
-    'SCRIPTS' => [
-        'backup_demo-tibox.sh'
-    ],
+    'DISKS' =>{
+        'CONNECTED' => {
+        },
+        'KNOWN' => {
+        },
+    },
+    'SCRIPTS' => {
+        'backup_demo-tibox.sh' => 1,
+    },
     'fifo' => '/var/run/tetras-back.fifo',
-    'logfile' => '/var/log/tetas-back.log',

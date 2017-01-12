@@ -23,14 +23,17 @@ RULE_NAME=50-$(NAME).rules
 WEB_PREFIX=/var/www/
 APACHE_CONF_DIR=/etc/apache2/conf-available
 SERVICE_DIR=/etc/systemd/system
+DEPENDENCIES=libmime-lite-perl libio-handle-util-perl \
+			 libdata-dumper-simple-perl libcpanel-json-xs-perl \
+			 liblog-dispatch-perl libgetopt-argparse-perl
 
 all: install
 
 install: start_daemon
 
 dependencies:
-	@echo installing dependencies
-	apt-get -y install libgetopt-argparse-perl libcpanel-json-xs-perl
+	@echo "Installing dependencies"
+	apt-get -y install $(DEPENDENCIES)
 
 start_daemon: daemon
 	systemctl restart $(NAME).service
@@ -60,6 +63,8 @@ daemon: rule
 		echo "'scriptdir' => '$(SCRIPTS_DIR)'\n)" >> /etc/$(NAME)/configuration.pl; \
 		perl -c /etc/$(NAME)/configuration.pl; \
 		fi
+	@echo "Enabling logrotate"
+	cp src/logrotate/* /etc/logrotate.d/
 	@echo "Creating systemd service"
 	cp src/service/$(NAME).service $(SERVICE_DIR)/
 	sed -i -e "s@\(ExecStart=\)[^ ]*@\1$(BINDIR)/$(NAME)@"  $(SERVICE_DIR)/$(NAME).service
@@ -91,3 +96,6 @@ uninstall:
 	rm -rf $(WEB_PREFIX)/$(NAME) $(BINDIR)/$(NAME) $(RULES_DIR)/$(RULE_NAME) $(SERVICE_DIR)/$(NAME).service
 	systemctl daemon-reload
 	systemctl restart udev
+
+test:
+	bash src/tests/test.sh
