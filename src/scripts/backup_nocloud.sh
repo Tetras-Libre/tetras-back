@@ -64,6 +64,7 @@ test_and_fail $? "Pas de disque donnée, abandon"
 dev=$1
 dest=/mnt/backup
 date=`date +%Y-%m-%d_%H-%M-%S`
+postfix=_sauvegarde_`hostname`
 srv_directories="/root /etc /srv /var/www"
 data_directories="/home"
 
@@ -74,7 +75,7 @@ do_log "démarrage le `date`"
 /bin/mount -t auto $dev $dest
 test_and_fail $? "Impossible de monter le disque destination, abandon"
 
-dest=$dest/$date
+dest=$dest/$date$postfix
 mkdir $dest
 
 sauvegarde_mysql
