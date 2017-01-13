@@ -79,7 +79,7 @@ sauvegarde_mysql
 test_and_fail $? "Impossible de sauvegarde la base de donnée mysql"
 do_log "Sauvegarde mysql reussie"
 
-for action in "sauvegarde_serveur sauvegarde_donnees"
+for action in sauvegarde_serveur sauvegarde_donnees
 do
     $action
     ret=$?
