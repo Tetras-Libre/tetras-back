@@ -31,6 +31,28 @@ ajouter ou supprimer des disques en dialoguant via la ligne de commande et des
 fichiers json.
 L'administrateur est notifié des sauvegardes et des echecs par email.
 
+## Interface Web
+
+L'interface web n'est pas encore implémentée
+
+## Scripts de sauvegarde fournis
+
+### backup_nocloud.sh
+
+Ce script est celui par default, il permet de sauvegarder les solutions NoCloud
+de Demo-TIC et Tetras Libre. Il crée un dossier
+`YYYY-MM-DD_HH-MM-SS_Sauvegarde_Hostname` par sauvegarde sur le disque externe.
+Ce dossier contient un dossier "Donnees" correspondant au `/home` du serveur et
+une archiver `serveur.tar.gz` contenant les dossier `/etc`, `/srv`, `/var/www`,
+`/root` du serveur. Dans ce dernier dossier on peut trouver un dump de la base
+de donnée mysql.  Si il n'y a pas assez de place sur le disque externe, le
+script supprimera les anciennes sauvegardes.
+
+### backup_demo-tibox.sh
+
+Ce script sert à sauvegarder les Demo-Tibox de Demo-TIC, il sauvegarde les
+dossier `/etc` et `/home` par Rsync.
+
 ## CLI
 
 ### Gérer les disques
@@ -81,9 +103,16 @@ ou
 
 La device etant quelque chose du genre `/dev/sdb1`
 
-## Web
+## Projet
 
-L'interface web n'est pas encore implémentée
+### Todo
+
++ [ ] Web interface
++ [x] Sendmail after backup or on fail
++ [x] Daemon
++ [x] Udev rules
++ [x] Disc Selection
++ [x] Configuration file
 
 ### Hierarchie des dossiers
 
@@ -93,15 +122,7 @@ L'interface web n'est pas encore implémentée
     /src/scripts/*                      Backup scripts
     /src/service                        Systemd service
 
-## Todo
 
-+ [x] Sendmail after backup or on fail
-+ [x] Daemon
-+ [x] Udev rules
-+ [ ] Apache2 rule
-+ [ ] Web interface
-+ [x] Disc Selection
-+ [x] Configuration file
 
 ## Licence
 
