@@ -38,12 +38,12 @@ $CMD --register $fifo1
 
 read -p "Two clients should be on the configuration file, $prompt"
 
-$CMD --leave $fifo0
+$CMD --unregister $fifo0
 
 read -p "Only $fifo1 should be on the configuration file, $prompt"
 
 $CMD --register $fifo1
-$CMD --leave $fifo1
+$CMD --unregister $fifo1
 
 read -p "No clients should be on the configuration file, $prompt"
 

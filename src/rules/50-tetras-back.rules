@@ -1,8 +1,8 @@
-KERNEL=="sd[a-z]1", ACTION=="add", SUBSYSTEM=="usb", RUN+="/usr/local/sbin/tetras-back --plug %k"
-KERNEL=="sd[a-z]1", ACTION=="remove", SUBSYSTEM=="usb", RUN+="/usr/local/sbin/tetras-back --unplug %k"
+KERNEL=="sd??", ACTION=="add", SUBSYSTEM=="usb", RUN+="/usr/local/sbin/tetras-back --plug %k"
+KERNEL=="sd??", ACTION=="remove", SUBSYSTEM=="usb", RUN+="/usr/local/sbin/tetras-back --unplug %k"
 
-KERNEL=="sd[a-z]1", ACTION=="add", SUBSYSTEM=="scsi", RUN+="/usr/local/sbin/tetras-back --plug %k"
-KERNEL=="sd[a-z]1", ACTION=="remove", SUBSYSTEM=="scsi", RUN+="/usr/local/sbin/tetras-back --unplug %k"
+KERNEL=="sd??", ACTION=="add", SUBSYSTEM=="scsi", RUN+="/usr/local/sbin/tetras-back --plug %k"
+KERNEL=="sd??", ACTION=="remove", SUBSYSTEM=="scsi", RUN+="/usr/local/sbin/tetras-back --unplug %k"
 
-KERNEL=="sd[a-z]1", ACTION=="add", SUBSYSTEM=="block", RUN+="/usr/local/sbin/tetras-back --plug %k"
-KERNEL=="sd[a-z]1", ACTION=="remove", SUBSYSTEM=="block", RUN+="/usr/local/sbin/tetras-back --unplug %k"
+KERNEL=="sd??", ACTION=="add", SUBSYSTEM=="block", RUN+="/usr/local/sbin/tetras-back --plug /dev/%k"
+KERNEL=="sd??", ACTION=="remove", SUBSYSTEM=="block", RUN+="/usr/local/sbin/tetras-back --unplug /dev/%k"

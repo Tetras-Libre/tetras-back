@@ -345,11 +345,11 @@ my $ap = Getopt::ArgParse->new_parser(
 );
 
 $ap->add_args(
-    ['--daemon', '-d', type=>'Bool', help=>'Start the daemon'],
+    ['--start', '-d', type=>'Bool', help=>'Start the daemon'],
     ['--stop', type=>'Bool', help=>'Stop the daemon'],
     ['--register', '-r', type=>'Scalar', metavar=>"FIFO",
         help=>'register a fifo to notify events'],
-    ['--leave', '-l', type=>'Scalar', metavar=>"FIFO",
+    ['--unregister', '-l', type=>'Scalar', metavar=>"FIFO",
         help=>'end notifications to FIFO'],
     ['--forget', '-f', type=>'Scalar', metavar=>"UUID",
         help=>'Forget the given disc'],
@@ -362,7 +362,7 @@ $ap->add_args(
 );
 my  $arguments = $ap->parse_args();
 
-if ($arguments->get_attr('daemon')){
+if ($arguments->get_attr('start')){
     start_daemon();
 }elsif($arguments->get_attr('stop')){
     if ( -e $CFG::CFG{'fifo'}){
@@ -378,8 +378,8 @@ if ($arguments->get_attr('daemon')){
     }
 }elsif($arguments->get_attr('register')){
     send_command("REGISTER ".$arguments->get_attr('register'));
-}elsif($arguments->get_attr('leave')){
-    send_command("UNREGISTER ".$arguments->get_attr('leave'));
+}elsif($arguments->get_attr('unregister')){
+    send_command("UNREGISTER ".$arguments->get_attr('unregister'));
 }elsif(scalar(keys(%{$arguments->get_attr('save')})) != 0){
     my ($uuid, $name) = %{$arguments->get_attr('save')};
     send_command("SAVE $uuid $name");

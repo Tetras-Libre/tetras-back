@@ -8,6 +8,7 @@
         },
     },
     'SCRIPTS' => {
-        'backup_demo-tibox.sh' => 1,
+        'backup_demo-tibox.sh' => 0,
+        'backup_nocloud.sh' => 1,
     },
     'fifo' => '/var/run/tetras-back.fifo',
