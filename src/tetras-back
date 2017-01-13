@@ -170,8 +170,8 @@ sub do_backup($){
             if (! close(SCRLOG)){
                 $error = 1;
             }
+            $Logger->info("Script de sauvegarde $scr terminé");
         }
-        $Logger->info("Script de sauvegarde $scr terminé");
     }
     my $message = "";
     if( $error == 0 ){
@@ -311,6 +311,7 @@ sub start_daemon(){
         }elsif ($line =~ /^REGISTER (.*)$/){
             $CFG::CFG{CLIENTS}{$1} = time();
             save_config();
+            notify();
             $Logger->debug("Enregistrement de la FIFO client : '$1'");
         }elsif ($line =~ /^UNREGISTER (.*)$/){
             delete $CFG::CFG{CLIENTS}{$1};
