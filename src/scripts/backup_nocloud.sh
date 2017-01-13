@@ -96,5 +96,9 @@ do
     nom=${action/_/ }
     do_log "$nom reussie"
 done
+do_log "Resultats de la sauvegarde:"
+du -h -d 1 $dest/
+df -h $dev
+do_log "Demontage du disque veuillez patienter avant de le retirer"
 umount $dev
 do_log "Sauvegarde terminee le `date`"
