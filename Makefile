@@ -39,10 +39,12 @@ start_daemon: daemon
 	systemctl restart $(NAME).service
 
 config:
+	systemctl stop tetras-back
 	mkdir -p /etc/$(NAME)
 	cp src/configuration.pl	/etc/$(NAME)
 	echo "'scriptdir' => '$(SCRIPTS_DIR)'\n)" >> /etc/$(NAME)/configuration.pl
 	perl -c /etc/$(NAME)/configuration.pl
+	systemctl start tetras-back
 
 daemon: rule
 	@echo "Installing main daemon"
