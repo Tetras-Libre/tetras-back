@@ -32,7 +32,7 @@ enregistrés):
 
     make config
 
-## Utilisation
+## Utilisation
 
 ## Comment ça marche
 
@@ -125,8 +125,8 @@ La device etant quelque chose du genre `/dev/sdb1`
 + [x] Sendmail after backup or on fail
 + [x] Daemon
 + [x] Udev rules
-+ [x] Disc Selection
-+ [x] Configuration file
++ [x] Disc Selection
++ [x] Configuration file
 
 ### Hierarchie des dossiers
 
