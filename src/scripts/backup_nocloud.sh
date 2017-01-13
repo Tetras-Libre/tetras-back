@@ -93,4 +93,5 @@ do
     nom=${action/_/ }
     do_log "$nom reussie"
 done
+umount $dev
 do_log "Sauvegarde terminee le `date`"
