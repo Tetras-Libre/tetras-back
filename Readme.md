@@ -16,7 +16,21 @@ avez besoin de:
 
 ## Installation
 
-En tant que root, executez `make dependencies && make` depuis ce repertoir
+En tant que root, executez `make dependencies && make` depuis ce repertoire.
+
+## Mise à niveau
+
+Pour mettre à niveau Tetras-back il suffit d'entrer la commande suivante:
+
+    git pull
+    make dependencies
+    make
+
+Cela n'écrasera pas votre fichier de configuration, **si et seulement si** vous
+voulez écraser votre fichier de configuration (oublie de tous les disques
+enregistrés):
+
+    make config
 
 ## Utilisation
 
