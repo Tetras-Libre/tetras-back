@@ -24,7 +24,7 @@ test_and_fail(){
 }
 
 # Retourne le premier element
-permier(){
+premier(){
     echo $1
 }
 
@@ -48,7 +48,7 @@ sauvegarde_mysql(){
 
 sauvegarde_serveur(){
     do_log "Creation de l'archive configuration serveur"
-    tar cvzf $dest/serveur.tgz $srv_directories
+    tar czf $dest/serveur.tgz $srv_directories
 }
 
 sauvegarde_donnees(){
