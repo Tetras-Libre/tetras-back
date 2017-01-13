@@ -48,16 +48,18 @@ sauvegarde_mysql(){
 
 sauvegarde_serveur(){
     do_log "Creation de l'archive configuration serveur"
-    tar czf $dest/serveur.tgz $srv_directories
+    tar czf$taropt $dest/serveur.tgz $srv_directories
 }
 
 sauvegarde_donnees(){
-    cp -r /home $dest/Donnees
+    cp $cpopt -r /home $dest/Donnees
 }
 
 # $1 should be an unmounted device like /dev/sdb1
 test ! -z "$1"
 test_and_fail $? "Pas de disque donnée, abandon"
+
+[ ! -z "$2" ] && cpopt="-v" && taropt="v"
 
 dev=$1
 dest=/mnt/backup
