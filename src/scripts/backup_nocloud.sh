@@ -20,7 +20,7 @@
 
 # If $1 is not 0, exit with message $2
 test_and_fail(){
-    [ $1 -ne 0 ] && echo "Echec de la sauvegarde : '$2'"; exit $1
+    [ $1 -ne 0 ] && echo "Echec de la sauvegarde : '$2'" && exit $1
 }
 
 # Retourne le premier element
