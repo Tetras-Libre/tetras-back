@@ -1,4 +1,4 @@
-/var/log/tetras-back/*.log {
+/var/log/tetras-back/main.log {
         rotate 4
         weekly
         missingok
