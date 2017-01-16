@@ -40,33 +40,108 @@ do_log(){
     echo "Sauvegarde NoCloud - $@"
 }
 
-sauvegarde_mysql(){
-    do_log "Sauvegarde mysql"
-    mysqldump --single-transaction --flush-logs --all-databases \
-        | gzip > /root/db.sql.gz
-}
-
 sauvegarde_serveur(){
+    do_log "Sauvegarde mysql"
+    mysqldump --events --single-transaction --flush-logs --all-databases \
+        | gzip > /root/db.sql.gz
+    test_and_fail $? "Impossible de sauvegarde la base de donnée mysql"
+    if $gitlab
+    then
+        # the backup should be in /var/opt/gitlab/backups thus in srv_directories
+        /usr/bin/gitlab-rake $voptminus gitlab:backup:create
+    fi
     do_log "Creation de l'archive configuration serveur"
-    tar czf$taropt $dest/serveur.tgz $srv_directories
+    tar czf$vopt $dest/serveur.tgz $srv_directories
 }
 
 sauvegarde_donnees(){
-    cp $cpopt -r /home $dest/Donnees
+    cp $voptminus -r /home $dest/Donnees
 }
 
-# $1 should be an unmounted device like /dev/sdb1
-test ! -z "$1"
-test_and_fail $? "Pas de disque donnée, abandon"
+sauvegarde_seafile(){
+    # On sauvegarde le contenu des bibliothèques
+    echo "Sauvegarde - Contenu Seafile"
+    if [ ! -d /mnt/seafile-fuse ] ; then mkdir /mnt/seafile-fuse ; fi
+    # Demonte le dossier si file au cas ou le dernier backup l'ait laisse dans un drole d'etat
+    fusermount -zu /mnt/seafile-fuse
+    /srv/$seafile/seafile-server-latest/seaf-fuse.sh start /mnt/seafile-fuse
+    /usr/bin/rsync -rtv --exclude 'seafile-data/storage' --modify-window=2 /mnt/seafile-fuse/ /$dest/contenus_seafile/
+    /bin/sync
+    /srv/seafile.lesfeesrosses.org/seafile-server-latest/seaf-fuse.sh stop
+}
 
-[ ! -z "$2" ] && cpopt="-v" && taropt="v"
+usage(){
+    echo "Utilisation $0 [options] device"
+    echo "Device doit etre un disque non monte"
+    echo "Options"
+    echo "  -h | --help             Affiche cette aide et quitte"
+    echo "  -v | --verbose          Active le mode verbeux"
+    echo "  -d | --data             Sauvegarde les donnees (/home)"
+    echo "  -c | --config           Sauvegarde le serveur ($srv_directories)"
+    echo "  -g | --gitlab           Sauvegarde gitlab (implique --config)"
+    echo "  -u | --unifi            Sauvegarde unifi (/var/lib/unifi, implique --config)"
+    echo "  -s | --seafile  host    Sauvegarde seafile host  (seafile fuse)"
+}
 
-dev=$1
 dest=/mnt/backup
 date=`date +%Y-%m-%d_%H-%M-%S`
 postfix=_sauvegarde_`hostname`
-srv_directories="/root /etc /srv /var/www"
+srv_directories="/root /etc /srv /var/www /usr /lib /opt /var/opt"
 data_directories="/home"
+ACTIONS=""
+gitlab=false
+
+# Transform long options to short ones
+for arg in "$@"; do
+  shift
+  set -- "$@" `echo $arg | sed 's/^-\(-.\).*$/\1/'`
+done
+optspec=":hvdcgus"
+while getopts "$optspec" optchar; do
+    case "${optchar}" in
+        h)
+            usage
+            exit 0
+            ;;
+        v)
+            vopt="v"
+            voptminus="-v"
+            ;;
+        d)
+            ACTIONS+="\nsauvegarde_donnees"
+            ;;
+        c)
+            ACTIONS+="\nsauvegarde_serveur"
+            ;;
+        g)
+            ACTIONS+="\nsauvegarde_serveur"
+            gitlab=true
+            ;;
+        u)
+            ACTIONS+="\nsauvegarde_serveur"
+            srv_directories+=" /var/lib/unifi"
+            ;;
+        s)
+            seafile=$OPTARG
+            ACTIONS+="\nsauvegarde_seafile"
+            ;;
+        *)
+            echo "Option inconnue -$optchar"
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $(($OPTIND - 1))
+ACTIONS=`echo -e $ACTIONS | sort -u | sed /^$/d`
+
+if [ -z "$1" ]
+then
+    usage
+    test_and_fail 1 "Pas de disque donnée, abandon"
+fi
+# $1 should be an unmounted device like /dev/sdb1
+dev=$1
 
 do_log "démarrage le `date`"
 
@@ -78,11 +153,7 @@ test_and_fail $? "Impossible de monter le disque destination, abandon"
 dest=$dest/$date$postfix
 mkdir $dest
 
-sauvegarde_mysql
-test_and_fail $? "Impossible de sauvegarde la base de donnée mysql"
-do_log "Sauvegarde mysql reussie"
-
-for action in sauvegarde_serveur sauvegarde_donnees
+for action in $ACTIONS
 do
     $action
     ret=$?
@@ -96,6 +167,9 @@ do
     nom=${action/_/ }
     do_log "$nom reussie"
 done
+
+# force sync of files to disk before unmounting
+/bin/sync
 do_log "Resultats de la sauvegarde:"
 du -h -d 1 $dest/
 df -h $dev
