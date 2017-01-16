@@ -30,6 +30,7 @@ DEPENDENCIES=libmime-lite-perl libio-handle-util-perl \
 all: install
 
 install: start_daemon
+	systemctl enable $(NAME).service
 
 dependencies:
 	@echo "Installing dependencies"
