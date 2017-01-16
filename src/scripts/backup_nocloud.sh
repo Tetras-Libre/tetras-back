@@ -47,10 +47,20 @@ do_log(){
 }
 
 sauvegarde_serveur(){
-    do_log "Sauvegarde mysql"
-    mysqldump --events --single-transaction --flush-logs --all-databases \
-        | gzip > /root/db.sql.gz
-    test_and_fail $? "Impossible de sauvegarde la base de donnée mysql"
+    if $mysql
+    then
+        do_log "Sauvegarde mysql"
+        mysqldump --events --single-transaction --flush-logs --all-databases \
+            | gzip > /root/db.sql.gz
+        test_and_fail $? "Impossible de sauvegarde la base de donnée mysql"
+    fi
+    if $postgres
+    then
+        do_log "Sauvegarde postgresql"
+         sudo -u postgres pg_dumpall > /root/pg_dump.sql
+        test_and_fail $? "Impossible de sauvegarde la base de donnée postgresql"
+         gzip /root/pg_dump.sql
+     fi
     if $gitlab
     then
         # the backup should be in /var/opt/gitlab/backups thus in srv_directories
@@ -84,6 +94,8 @@ usage(){
     echo "  -h | --help             Affiche cette aide et quitte"
     echo "  -v | --verbose          Active le mode verbeux"
     echo "  -d | --data             Sauvegarde les donnees (/home)"
+    echo "  -p | --postgresql       Sauvegarde postgresql"
+    echo "  -m | --mysql            Sauvegarde mysql "
     echo "  -c | --config           Sauvegarde le serveur ($srv_directories)"
     echo "  -g | --gitlab           Sauvegarde gitlab (implique --config)"
     echo "  -u | --unifi            Sauvegarde unifi (/var/lib/unifi, implique --config)"
@@ -97,13 +109,15 @@ srv_directories="/root /etc /srv /var/www /usr /lib /opt /var/opt"
 data_directories="/home"
 ACTIONS=""
 gitlab=false
+mysql=false
+postgres=false
 
 # Transform long options to short ones
 for arg in "$@"; do
   shift
   set -- "$@" `echo $arg | sed 's/^-\(-.\).*$/\1/'`
 done
-optspec=":hvdcgus"
+optspec=":hvdcgus:mp"
 while getopts "$optspec" optchar; do
     case "${optchar}" in
         h)
@@ -131,6 +145,12 @@ while getopts "$optspec" optchar; do
         s)
             seafile=$OPTARG
             ACTIONS+="\nsauvegarde_seafile"
+            ;;
+        m)
+            mysql=true
+            ;;
+        p)
+            postgres=true
             ;;
         *)
             echo "Option inconnue -$optchar"

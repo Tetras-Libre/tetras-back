@@ -17,6 +17,6 @@
         #       --gitlab => backup gitlab
         #       --unifi (/var/lib/unifi)
         #       --seafile ARG (mount seafile fuse and back it up)
-        'backup_nocloud.sh' => '--data --config',
+        'backup_nocloud.sh' => '--data --config --mysql',
     },
     'fifo' => '/var/run/tetras-back.fifo',
