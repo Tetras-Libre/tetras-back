@@ -221,7 +221,7 @@ sub get_uuid($){
 # Retrieve the uuid of a connected device
 sub get_uuid_connected($){
     my $dev = shift;
-    for my uuid (%{$CFG::CFG{DISKS}{CONNECTED}}){
+    for my $uuid (%{$CFG::CFG{DISKS}{CONNECTED}}){
         if ($CFG::CFG{DISKS}{CONNECTED}{$uuid} == $dev){
             return $uuid;
         }
