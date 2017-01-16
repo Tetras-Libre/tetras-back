@@ -84,7 +84,7 @@ sauvegarde_seafile(){
     /srv/$seafile/seafile-server-latest/seaf-fuse.sh start /mnt/seafile-fuse
     /usr/bin/rsync -rtv --exclude 'seafile-data/storage' --modify-window=2 /mnt/seafile-fuse/ /$dest/contenus_seafile/
     /bin/sync
-    /srv/seafile.lesfeesrosses.org/seafile-server-latest/seaf-fuse.sh stop
+    /srv/$seafile/seafile-server-latest/seaf-fuse.sh stop
 }
 
 usage(){
@@ -143,7 +143,7 @@ while getopts "$optspec" optchar; do
             srv_directories+=" /var/lib/unifi"
             ;;
         s)
-            seafile=$OPTARG
+            seafile="$OPTARG"
             ACTIONS+="\nsauvegarde_seafile"
             ;;
         m)
