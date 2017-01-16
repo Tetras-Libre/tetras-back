@@ -48,6 +48,7 @@ sauvegarde_serveur(){
     if $gitlab
     then
         # the backup should be in /var/opt/gitlab/backups thus in srv_directories
+        do_log "Creation de la sauvegarde gitlab"
         /usr/bin/gitlab-rake $voptminus gitlab:backup:create
     fi
     do_log "Creation de l'archive configuration serveur"
