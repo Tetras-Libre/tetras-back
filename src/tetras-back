@@ -218,6 +218,17 @@ sub get_uuid($){
     return $ret;
 }
 
+# Retrieve the uuid of a connected device
+sub get_uuid_connected($){
+    my $dev = shift;
+    for my uuid (%{$CFG::CFG{DISKS}{CONNECTED}}){
+        if ($CFG::CFG{DISKS}{CONNECTED}{$uuid} == $dev){
+            return $uuid;
+        }
+    }
+    return ""
+}
+
 # Callback for Logger
 sub format_log{
     my %args = @_;
@@ -258,7 +269,7 @@ sub start_daemon(){
             my $uuid = get_uuid($dev);
             $Logger->info("Disque connecte '$dev', uuid: '$uuid'");
             # Mark disc as present
-            $CFG::CFG{DISKS}{CONNECTED}{$uuid}=time();
+            $CFG::CFG{DISKS}{CONNECTED}{$uuid}=$dev;
             # Check if disc known
             if(exists($CFG::CFG{DISKS}{KNOWN}{$uuid})){
                 # known disc
@@ -272,7 +283,7 @@ sub start_daemon(){
             }
         }elsif ($line =~ /^UNPLUG (.*)$/){
             $Logger->info("Disque retire $1");
-            my $uuid = get_uuid($1);
+            my $uuid = get_uuid_connected($1);
             # Remove uuid from connected
             delete $CFG::CFG{DISKS}{CONNECTED}{$uuid};
             # update last seen
