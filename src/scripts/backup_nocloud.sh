@@ -94,8 +94,8 @@ usage(){
     echo "  -h | --help             Affiche cette aide et quitte"
     echo "  -v | --verbose          Active le mode verbeux"
     echo "  -d | --data             Sauvegarde les donnees (/home)"
-    echo "  -p | --postgresql       Sauvegarde postgresql"
-    echo "  -m | --mysql            Sauvegarde mysql "
+    echo "  -p | --postgresql       Sauvegarde postgresql (implique --config)"
+    echo "  -m | --mysql            Sauvegarde mysql (implique --config)"
     echo "  -c | --config           Sauvegarde le serveur ($srv_directories)"
     echo "  -g | --gitlab           Sauvegarde gitlab (implique --config)"
     echo "  -u | --unifi            Sauvegarde unifi (/var/lib/unifi, implique --config)"
@@ -148,9 +148,11 @@ while getopts "$optspec" optchar; do
             ;;
         m)
             mysql=true
+            ACTIONS+="\nsauvegarde_serveur"
             ;;
         p)
             postgres=true
+            ACTIONS+="\nsauvegarde_serveur"
             ;;
         *)
             echo "Option inconnue -$optchar"
