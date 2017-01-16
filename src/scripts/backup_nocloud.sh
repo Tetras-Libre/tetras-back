@@ -20,7 +20,13 @@
 
 # If $1 is not 0, exit with message $2
 test_and_fail(){
-    [ $1 -ne 0 ] && echo "Echec de la sauvegarde : '$2'" && exit $1
+    if [ $1 -ne 0 ]
+    then
+        echo "Echec de la sauvegarde : '$2'"
+        sync
+        umount -f $dev
+        exit $1
+    fi
 }
 
 # Retourne le premier element
