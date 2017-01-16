@@ -177,7 +177,7 @@ sub do_backup($){
         # prepare message and end backup
         my $status = "Sauvegarde reussie";
         my $subject = "$status sur le disque $name";
-        $message = "La sauvegarde c'est termine correctement, vous pouvez maintenant debrancher le disque dur";
+        $message = "La sauvegarde c'est terminée correctement, vous pouvez maintenant débrancher le disque dur.";
         $Logger->info($subject);
         end_backup($uuid, $status, $subject, $message);
     } else{
