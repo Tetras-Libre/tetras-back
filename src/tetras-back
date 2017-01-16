@@ -198,7 +198,7 @@ sub do_sendmail($$){
         Subject  => "[Tetras-back] $subject",
         Type     => 'multipart/mixed'
     );
-    #$msg->attr("content-type.charset" => "UTF-8");
+    $msg->attr("content-type.charset" => "UTF-8");
     $msg->attach(
         Type     => 'TEXT',
         Data     => $message,
