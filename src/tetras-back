@@ -162,7 +162,7 @@ sub do_backup($){
     # Start each script
     for my $scr (keys %{$CFG::CFG{'SCRIPTS'}}){
         my $cmd="$CFG::CFG{'scriptdir'}/$scr $CFG::CFG{'SCRIPTS'}{$scr} $disc";
-        $Logger->info("Lancement du script de sauvegarde '$cmd");
+        $Logger->info("Lancement du script de sauvegarde '$CFG::CFG{'scriptdir'}/$scr'");
         $pid = open SCRLOG, '-|', "$cmd 2>&1";
         # Forward script output
         while (my $line = <SCRLOG>){
