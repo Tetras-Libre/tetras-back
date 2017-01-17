@@ -310,10 +310,16 @@ sub start_daemon(){
             # Add the disc as known
             my $uuid=$1;
             my $name=$2;
+            my $time;
             $Logger->info("Enregistrement du disque : '$uuid', nom : '$name'");
+            if (exists $CFG::CFG{DISKS}{CONNECTED}{$uuid}){
+                $time = time();
+            }else{
+                $time = 'Never';
+            }
             $CFG::CFG{DISKS}{KNOWN}{$uuid}={
                 name => $name,
-                last_seen => time(),
+                last_seen => $time,
                 last_backup => 'Never'
             };
             # Save our configuration file

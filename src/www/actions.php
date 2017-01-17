@@ -17,13 +17,35 @@
      * You should have received a copy of the GNU General Public License
      * along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
-
-    $output = shell_exec('tail /var/log/tetras-back/main.log');
 ?>
-<h1> Logs </h1>
-<pre><code>
+<p>
 <?php
-// TODO: revert output
-echo "$output";
+
+    // Save uuid name
+    // Forget uuid
+    // Backup dev
+
+    extract($_POST);
+    switch($action){
+        case "save" :
+            echo "Enregistrement du disque $uuid avec le nom $name";
+            break;
+        case "trigger" :
+            if ( $dev == ""){
+                echo "Impossible de lancer une sauvegarde sur le disque $name car il n'est pas connecte";
+            }else{
+                echo "Declanchement de sauvegarde sur le disque  $name ";
+            }
+            break;
+        case "forget":
+            echo "Desenregistrement du disque $name";
+            break;
+    }
+    # TODO Safe shell exec
+    # $output = shell_exec('tail /var/log/tetras-back/main.log');
+    // TODO: revert output
 ?>
-</code></pre>
+</p>
+<p>
+<a href="index.php">Retour a l'accueil</a>
+</p>

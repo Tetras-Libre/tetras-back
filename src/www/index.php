@@ -39,7 +39,7 @@ $(function() {
         $.get('log.php', function(data) {
             $('#mainlog').html(data);
         });
-    }, 1000);
+    }, 5000);
 });
 </script>
 <script>
@@ -48,7 +48,7 @@ $(function() {
         $.get('discs.php', function(data) {
             $('#discs').html(data);
         });
-    }, 1000);
+    }, 5000);
 });
 </script>
 </body>
