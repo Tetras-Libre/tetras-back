@@ -100,6 +100,7 @@ usage(){
     echo "  -g | --gitlab           Sauvegarde gitlab (implique --config)"
     echo "  -u | --unifi            Sauvegarde unifi (/var/lib/unifi, implique --config)"
     echo "  -s | --seafile  host    Sauvegarde seafile host  (seafile fuse)"
+    echo "  -e | --encfs    pass    Use encfs protected directories with given password"
 }
 
 dest=/mnt/backup
@@ -117,7 +118,7 @@ for arg in "$@"; do
   shift
   set -- "$@" `echo $arg | sed 's/^-\(-.\).*$/\1/'`
 done
-optspec=":hvdcgus:mp"
+optspec=":hvdcgus:mpe:"
 while getopts "$optspec" optchar; do
     case "${optchar}" in
         h)
@@ -154,6 +155,10 @@ while getopts "$optspec" optchar; do
             postgres=true
             ACTIONS+="\nsauvegarde_serveur"
             ;;
+        e)
+            encfs=true
+            ENCPASS="$OPTARG"
+            ;;
         *)
             echo "Option inconnue -$optchar"
             usage
@@ -179,6 +184,13 @@ do_log "démarrage le `date`"
 /bin/mount -t auto $dev $dest
 test_and_fail $? "Impossible de monter le disque destination, abandon"
 
+if $encfs
+then
+    /usr/bin/encfs $dest/.crypted $dest/backups
+    test_and_fail $? "Impossible de monter le coffre chiffré"
+    dest=$dest/backups
+fi
+
 dest=$dest/$date$postfix
 mkdir $dest
 
@@ -203,5 +215,9 @@ do_log "Resultats de la sauvegarde:"
 du -h -d 1 $dest/
 df -h $dev
 do_log "Demontage du disque veuillez patienter avant de le retirer"
+if $encfs
+then
+    fusermount -u $dest/..
+fi
 umount $dev
 do_log "Sauvegarde terminee le `date`"

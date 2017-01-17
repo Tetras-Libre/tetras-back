@@ -25,7 +25,7 @@ APACHE_CONF_DIR=/etc/apache2/conf-available
 SERVICE_DIR=/etc/systemd/system
 DEPENDENCIES=libmime-lite-perl libio-handle-util-perl \
 			 libdata-dumper-simple-perl libcpanel-json-xs-perl \
-			 liblog-dispatch-perl libgetopt-argparse-perl
+			 liblog-dispatch-perl libgetopt-argparse-perl encfs
 
 all: install
 
@@ -66,6 +66,8 @@ daemon: rule
 		echo "'scriptdir' => '$(SCRIPTS_DIR)'\n)" >> /etc/$(NAME)/configuration.pl; \
 		perl -c /etc/$(NAME)/configuration.pl; \
 		fi
+	chown root:root /etc/$(NAME)/configuration.pl
+	chmod 600 /etc/$(NAME)/configuration.pl
 	@echo "Enabling logrotate"
 	cp src/logrotate/* /etc/logrotate.d/
 	@echo "Creating systemd service"

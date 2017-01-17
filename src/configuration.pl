@@ -13,10 +13,15 @@
         #
         # Options
         #       --data (/home)
-        #       --srv (mysql /etc /root /var/www /srv /usr /lib /opt)
+        #       --verbose
+        #       --config (/etc /root /var/www /srv /usr /lib /opt)
+        #       --mysql (imply --config)
+        #       --postgresql (imply --config)
+        #       --unifi (imply --config, /var/lib/unifi)
         #       --gitlab => backup gitlab
         #       --unifi (/var/lib/unifi)
         #       --seafile ARG (mount seafile fuse and back it up)
+        #       --encfs PASS (encrypt backup directory with pass
         'backup_nocloud.sh' => '--data --config --mysql',
     },
     'fifo' => '/var/run/tetras-back.fifo',
