@@ -20,12 +20,13 @@ BINDIR=$(PREFIX)/sbin
 SCRIPTS_DIR=$(PREFIX)/lib/$(NAME)
 RULES_DIR=/etc/udev/rules.d
 RULE_NAME=50-$(NAME).rules
-WEB_PREFIX=/var/www/
+WEB_PREFIX=/var/www/html
+WEB_CLIENT=$(WEB_PREFIX)/$(NAME)/tl-client
 APACHE_CONF_DIR=/etc/apache2/conf-available
 SERVICE_DIR=/etc/systemd/system
 DEPENDENCIES=libmime-lite-perl libio-handle-util-perl \
 			 libdata-dumper-simple-perl libcpanel-json-xs-perl \
-			 liblog-dispatch-perl libgetopt-argparse-perl encfs
+			 liblog-dispatch-perl libgetopt-argparse-perl encfs php5-json
 
 all: install
 
@@ -74,7 +75,8 @@ daemon: rule
 	cp src/service/$(NAME).service $(SERVICE_DIR)/
 	mkdir -p /var/log/tetras-back
 	chown -R root:root /var/log/tetras-back
-	chmod -R 600 /var/log/tetras-back
+	chmod -R 644 /var/log/tetras-back/*
+	chmod  755 /var/log/tetras-back/
 	sed -i -e "s@\(ExecStart=\)[^ ]*@\1$(BINDIR)/$(NAME)@"  $(SERVICE_DIR)/$(NAME).service
 	@echo "Reloading systemd"
 	systemctl daemon-reload
@@ -85,9 +87,12 @@ rule:
 	@echo "Restarting udev"
 	systemctl restart udev
 
-web: clean-web web-conf-apache
+web: clean-web
 	@echo "Copying web files"
-	cp -r src/www/* $(WEB_PREFIX)/$(NAME)
+	cp -r src/www/ $(WEB_PREFIX)/$(NAME)
+	chown -R www-data:www-data $(WEB_PREFIX)/$(NAME)
+	touch $(WEB_CLIENT)
+	tetras-back --register $(WEB_CLIENT)
 
 web-conf-apache:
 	@echo "Copying apache configuration file"
@@ -97,6 +102,8 @@ web-conf-apache:
 
 clean-web:
 	@echo "Removing old web installation"
+	if [ -e $(WEB_CLIENT) ]; then tetras-back --unregister $(WEB_CLIENT); \
+		cat $(WEB_CLIENT); rm $(WEB_CLIENT); fi
 	rm -rf $(WEB_PREFIX)/$(NAME)
 
 uninstall:

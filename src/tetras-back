@@ -35,6 +35,7 @@ my $Logger;
 my %running_backups;
 my $LOGDIR = "/var/log/tetras-back";
 my $CFGFILE = "/etc/tetras-back/configuration.pl";
+my $MAINFIFO = "/var/run/tetras-back.fifo";
 
 # Read/SaveCfg snippet from
 # http://www.perlmonks.org/?displaytype=print;node_id=464358
@@ -110,7 +111,7 @@ sub do_stop($$){
     my $error=shift;
     $Logger->alert("Arret du daemon :'$message'");
     close FIFO;
-    unlink $CFG::CFG{'fifo'};
+    unlink $MAINFIFO;
     exit($error);
 }
 
@@ -118,7 +119,7 @@ sub do_stop($$){
 sub notify(){
     my $json = encode_json($CFG::CFG{DISKS});
     for my $client (keys %{$CFG::CFG{CLIENTS}}){
-        open CLI, ">>", $client or die "Can't write to $client";
+        open CLI, ">", $client or die "Can't write to $client";
         print CLI "$json\n";
         close CLI
     }
@@ -243,14 +244,19 @@ sub format_log{
 
 # Main loop
 sub start_daemon(){
+    # Read config
+    if (my $err = ReadCfg($CFGFILE)) {
+        do_stop("Erreur '$err'", 1)
+    }
 
     # Create the main fifo
-    mkfifo($CFG::CFG{'fifo'},700) or die "Impossible de créer la file $CFG::CFG{'fifo'}, est-ce qu'un daemon tourne déjà ?";
+    mkfifo($MAINFIFO,0666) or die "Impossible de créer la file $MAINFIFO, est-ce qu'un daemon tourne déjà ?";
+    system("chmod 0666 $MAINFIFO");
     # Exit properly in case of issue
     $SIG{INT} = sub { do_stop("Signal SIGINT reçu",0)};
     $SIG{USR1} = sub { do_stop("Signal SIGUSR1 reçu",0)};
     $SIG{CHLD} = sub { save_config(); notify(); };
-    open FIFO, "+<", $CFG::CFG{'fifo'} or die "Can't read from $CFG::CFG{'fifo'}";
+    open FIFO, "+<", $MAINFIFO or die "Can't read from $MAINFIFO";
     # prepare logs
     mkdir $LOGDIR;
     $Logger = Log::Dispatch->new(
@@ -344,15 +350,10 @@ sub start_daemon(){
 # Forward the given command to the daemon
 sub send_command($){
     my $cmd=shift;
-    open FIFO, ">>", $CFG::CFG{'fifo'} or die "Impossible d'écrire sur $CFG::CFG{'fifo'}";
+    open FIFO, ">>", $MAINFIFO or die "Impossible d'écrire sur $MAINFIFO";
     print FIFO "$cmd\n";
     close FIFO;
     exit;
-}
-
-# Read config
-if (my $err = ReadCfg($CFGFILE)) {
-    do_stop("Erreur '$err'", 1)
 }
 
 # Pase args
@@ -381,13 +382,13 @@ my  $arguments = $ap->parse_args();
 if ($arguments->get_attr('start')){
     start_daemon();
 }elsif($arguments->get_attr('stop')){
-    if ( -e $CFG::CFG{'fifo'}){
+    if ( -e $MAINFIFO){
         my $th=threads->create('send_command', "STOP");
         # Timeout
         sleep(5);
-        if($th->is_running() or -e $CFG::CFG{'fifo'}){
-            print "Le daemon de repond pas, suppression de la file $CFG::CFG{'fifo'}\n";
-            unlink $CFG::CFG{'fifo'};
+        if($th->is_running() or -e $MAINFIFO){
+            print "Le daemon de repond pas, suppression de la file $MAINFIFO\n";
+            unlink $MAINFIFO;
             # Avoid perl to yelling at us because of the unjoined thread
             $th->detach();
         }

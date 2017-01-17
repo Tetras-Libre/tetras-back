@@ -24,4 +24,3 @@
         #       --encfs PASS (encrypt backup directory with pass
         'backup_nocloud.sh' => '--data --config --mysql',
     },
-    'fifo' => '/var/run/tetras-back.fifo',
