@@ -189,8 +189,10 @@ if $encfs
 then
     crypted="$dest/crypted"
     encfsmount="$dest/backups"
-    [ ! -d $crypted ] && mkdir $crypted && test_and_fail $? "Impossible de créer le coffre chiffré"
-    [ ! -d $crypted ] && mkdir $encfsmount && test_and_fail $? "Impossible de créer le coffre chiffré"
+    [ ! -d $crypted ] && mkdir $crypted && \
+        test_and_fail $? "Impossible de créer le coffre chiffré"
+    [ ! -d $encfsmount ] && mkdir $encfsmount && \
+        test_and_fail $? "Impossible de créer le point de montage encfs"
     echo $ENCPASS | /usr/bin/encfs --stdinpass $crypted $encfsmount
     test_and_fail $? "Impossible de monter le coffre chiffré"
     unset $ENCPASS
