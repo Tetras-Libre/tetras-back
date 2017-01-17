@@ -187,8 +187,9 @@ test_and_fail $? "Impossible de monter le disque destination, abandon"
 
 if $encfs
 then
-    /usr/bin/encfs $dest/.crypted $dest/backups
+    echo $ENCPASS | /usr/bin/encfs --stdinpass $dest/.crypted $dest/backups
     test_and_fail $? "Impossible de monter le coffre chiffré"
+    unset $ENCPASS
     dest=$dest/backups
 fi
 
