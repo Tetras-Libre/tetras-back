@@ -187,10 +187,14 @@ test_and_fail $? "Impossible de monter le disque destination, abandon"
 
 if $encfs
 then
-    echo $ENCPASS | /usr/bin/encfs --stdinpass $dest/.crypted $dest/backups
+    crypted="$dest/crypted"
+    encfsmount="$dest/backups"
+    [ ! -d $crypted ] && mkdir $crypted && test_and_fail $? "Impossible de créer le coffre chiffré"
+    [ ! -d $crypted ] && mkdir $encfsmount && test_and_fail $? "Impossible de créer le coffre chiffré"
+    echo $ENCPASS | /usr/bin/encfs --stdinpass $crypted $encfsmount
     test_and_fail $? "Impossible de monter le coffre chiffré"
     unset $ENCPASS
-    dest=$dest/backups
+    dest=$encfsmount
 fi
 
 dest=$dest/$date$postfix
@@ -219,7 +223,7 @@ df -h $dev
 do_log "Demontage du disque veuillez patienter avant de le retirer"
 if $encfs
 then
-    fusermount -u $dest/..
+    fusermount -u $encfsmount
 fi
 umount $dev
 do_log "Sauvegarde terminee le `date`"
