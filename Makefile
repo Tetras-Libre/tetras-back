@@ -24,9 +24,7 @@ WEB_PREFIX=/var/www/html
 WEB_CLIENT=$(WEB_PREFIX)/$(NAME)/tl-client
 APACHE_CONF_DIR=/etc/apache2/conf-available
 SERVICE_DIR=/etc/systemd/system
-DEPENDENCIES=libmime-lite-perl libio-handle-util-perl \
-			 libdata-dumper-simple-perl libcpanel-json-xs-perl \
-			 liblog-dispatch-perl libgetopt-argparse-perl encfs php5-json
+DEPENDENCIES=encfs php5-json cpanminus
 
 all: install
 
@@ -35,7 +33,9 @@ install: start_daemon
 
 dependencies:
 	@echo "Installing dependencies"
-	apt-get -y install $(DEPENDENCIES)
+	apt-get -q -y install $(DEPENDENCIES)
+	for dep in `grep "^use.*::.*;" src/tetras-back  | sed 's/^use\s*\(\S*\)[ ;].*/\1/'`; \
+		do cpanm $$dep; done
 
 start_daemon: daemon
 	systemctl restart $(NAME).service
