@@ -72,6 +72,9 @@ daemon: rule
 	cp src/logrotate/* /etc/logrotate.d/
 	@echo "Creating systemd service"
 	cp src/service/$(NAME).service $(SERVICE_DIR)/
+	mkdir /var/log/tetras-back
+	chown -R root:root /var/log/tetras-back
+	chmod -R 600 /var/log/tetras-back
 	sed -i -e "s@\(ExecStart=\)[^ ]*@\1$(BINDIR)/$(NAME)@"  $(SERVICE_DIR)/$(NAME).service
 	@echo "Reloading systemd"
 	systemctl daemon-reload
