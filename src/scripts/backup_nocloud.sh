@@ -112,6 +112,7 @@ ACTIONS=""
 gitlab=false
 mysql=false
 postgres=false
+encfs=false
 
 # Transform long options to short ones
 for arg in "$@"; do
