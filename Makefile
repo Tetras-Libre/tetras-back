@@ -25,10 +25,11 @@ WEB_CLIENT=$(WEB_PREFIX)/$(NAME)/tl-client
 APACHE_CONF_DIR=/etc/apache2/conf-available
 SERVICE_DIR=/etc/systemd/system
 DEPENDENCIES=encfs php5-json cpanminus
+HTUSER=tetras-back
 
 all: install
 
-install: start_daemon
+install: start_daemon web
 	systemctl enable $(NAME).service
 
 dependencies:
@@ -94,11 +95,10 @@ web: clean-web
 	touch $(WEB_CLIENT)
 	tetras-back --register $(WEB_CLIENT)
 
-web-conf-apache:
-	@echo "Copying apache configuration file"
-	cp src/apache/$(NAME).conf $(APACHE_CONF_DIR)/
-	@echo "Enabling apache configuration"
-	a2enconf $(NAME)
+htpass:
+	htpasswd -c $(WEB_PREFIX)/$(NAME)/.htpasswd $(HTUSER) $(HTPASS)
+	mv $(WEB_PREFIX)/$(NAME)/htaccess  $(WEB_PREFIX)/$(NAME)/.htaccess
+	chown -R www-data:www-data $(WEB_PREFIX)/$(NAME)
 
 clean-web:
 	@echo "Removing old web installation"

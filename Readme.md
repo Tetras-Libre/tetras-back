@@ -26,6 +26,20 @@ Pour mettre à niveau Tetras-back il suffit d'entrer la commande suivante:
     make dependencies
     make
 
+Pour acceder à l'interface web il suffit de faire pointer un `Alias` ou un
+`VirtualHost` sur `/var/www/tetras-back`.
+
+Afin de proteger l'accès par mot de passe:
+
+    make htpass
+
+ou pour spécifier en ligne de commande le mot de passe:
+
+    HTPASS='monmotdepasse' make htpass
+
+Par défaut l'accès est restreint a l'utilisateur tetras-back, on peux
+changer cet utilisateur en utilisant la variable `HTUSER`.
+
 Cela n'écrasera pas votre fichier de configuration, **si et seulement si** vous
 voulez écraser votre fichier de configuration (oublie de tous les disques
 enregistrés):
@@ -125,7 +139,7 @@ La device etant quelque chose du genre `/dev/sdb1`
     + [X] Link to actions
     + [X] Actions
     + [X] Reverse + scroll for log
-    + [ ] htaccess / htpassword
+    + [x] htaccess / htpassword
     + [ ] vhost apache2
     + [X] CSS
     + [ ] encodage
