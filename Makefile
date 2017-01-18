@@ -96,7 +96,7 @@ web: clean-web
 	tetras-back --register $(WEB_CLIENT)
 
 htpass:
-	if [ ! -z "$(HTPASS)" ]; then \
+	if [ ! -z '$(HTPASS)' ]; then \
 		htpasswd -b -c $(WEB_PREFIX)/$(NAME)/.htpasswd $(HTUSER) '$(HTPASS)';\
 		else \
 		htpasswd -c $(WEB_PREFIX)/$(NAME)/.htpasswd $(HTUSER); \
