@@ -20,30 +20,30 @@
 ?>
 <p>
 <?php
-
-    // Save uuid name
-    // Forget uuid
-    // Backup dev
-
     extract($_POST);
+    echo "actions '$action', uuid '$uuid', name '$name', dev '$dev'<br/>";
+    $cmd = "/usr/local/sbin/tetras-back";
     switch($action){
         case "save" :
             echo "Enregistrement du disque $uuid avec le nom $name";
+            $args = "--save ".escapeshellarg($uuid)."=".escapeshellarg($name);
             break;
         case "trigger" :
-            if ( $dev == ""){
+            if ( !strcmp($dev,"")){
                 echo "Impossible de lancer une sauvegarde sur le disque $name car il n'est pas connecte";
             }else{
                 echo "Declanchement de sauvegarde sur le disque  $name ";
+                $args = "--plug ".escapeshellarg($dev);
             }
             break;
         case "forget":
             echo "Desenregistrement du disque $name";
+            $args = "--forget ".escapeshellarg($uuid);
             break;
     }
-    # TODO Safe shell exec
-    # $output = shell_exec('tail /var/log/tetras-back/main.log');
-    // TODO: revert output
+    if (strcmp($args, "")){
+        shell_exec("$cmd $args");
+    }
 ?>
 </p>
 <p>

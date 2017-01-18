@@ -18,7 +18,7 @@
      * along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
 
-    $output = shell_exec('tail /var/log/tetras-back/main.log');
+    $output = shell_exec('tail -n 100 /var/log/tetras-back/main.log');
 ?>
 <h1> Logs </h1>
 <pre><code>

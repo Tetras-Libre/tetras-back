@@ -53,7 +53,6 @@
 <table>
 <tr><th>Nom</th><th>Identifiant unique</th><th>Derniere connexion</th><th>Derniere sauvegarde</th><th>Delencher la sauvegarde</th><th>Oublier le disque</th></tr>
 <?php
-//add backup button that is grey if not connected and triggers tetras-back \-\-plug device
 foreach ($conf['KNOWN'] as $uuid => $value) :
     $name=$value['name'];
     if( $value['last_seen'] != 'Never' ){
@@ -64,16 +63,24 @@ foreach ($conf['KNOWN'] as $uuid => $value) :
         $last_seen = 'Jamais';
     }
     $last_backup_state = $value['last_backup'];
-    $last_backup_epoch = substr($last_backup_state,
-        strrpos($last_backup_state, ' '));
+    $pos = strrpos($last_backup_state, ' ');
+    if($pos != 0){
+        $pos++;
+    }
+    $last_backup_epoch = substr($last_backup_state, $pos);
     if( $last_backup_epoch != 'Never' ){
         $dt= new DateTime("@$last_backup_epoch");
-        $last_backup_time = $dt->format($format);
+        $last_backup_time = "le : ".$dt->format($format);
     }else{
         $last_backup_time = 'Jamais';
     }
     $last_backup_state = str_replace($last_backup_epoch,
          $last_backup_time, $last_backup_state);
+    if (array_key_exists($uuid, $conf['CONNECTED'])){
+        $dev = $conf['CONNECTED'][$uuid];
+    }else{
+        $dev = "";
+    }
 ?>
 <tr>
     <td><?php echo $name ?></td>
@@ -82,17 +89,18 @@ foreach ($conf['KNOWN'] as $uuid => $value) :
     <td><?php echo $last_backup_state ?></td>
     <td>
         <form action="actions.php" method="post">
-            <input type="hidden" name="name" value="<?php echo $conf['KNOWN'][$uuid]['name'] ?>">
-            <input type="hidden" name="uuid" value="<?php echo $conf['CONNECTED'][$uuid] ?>">
+            <input type="hidden" name="name" value="<?php echo $name ?>">
+            <input type="hidden" name="dev" value="<?php echo $dev ?>">
+            <input type="hidden" name="uuid" value="<?php echo $uuid ?>">
             <input type="hidden" name="action" value="trigger">
             <input type="submit" value="Sauvegarder">
         </form>
     </td>
     <td>
         <form action="actions.php" method="post">
-            <input type="hidden" name="name" value="<?php echo $conf['KNOWN'][$uuid]['name'] ?>">
-            <input type="hidden" name="uuid" value="<?php echo $conf['CONNECTED'][$uuid] ?>">
-            <input type="hidden" name="dev" value="<?php echo $uuid ?>">
+            <input type="hidden" name="name" value="<?php echo $name ?>">
+            <input type="hidden" name="uuid" value="<?php echo $uuid ?>">
+            <input type="hidden" name="dev" value="<?php echo $dev ?>">
             <input type="hidden" name="action" value="forget">
             <input type="submit" value="Oublier">
         </form>
