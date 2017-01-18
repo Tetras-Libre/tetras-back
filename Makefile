@@ -96,7 +96,7 @@ web: clean-web
 	tetras-back --register $(WEB_CLIENT)
 
 htpass:
-	htpasswd -c $(WEB_PREFIX)/$(NAME)/.htpasswd $(HTUSER) $(HTPASS)
+	htpasswd -c $(WEB_PREFIX)/$(NAME)/.htpasswd $(HTUSER) '$(HTPASS)'
 	mv $(WEB_PREFIX)/$(NAME)/htaccess  $(WEB_PREFIX)/$(NAME)/.htaccess
 	chown -R www-data:www-data $(WEB_PREFIX)/$(NAME)
 
