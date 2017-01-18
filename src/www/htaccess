@@ -1,0 +1,4 @@
+AuthUserFile ./.htpasswd
+AuthType Basic
+AuthName "Tetras-Back"
+Require valid-user
