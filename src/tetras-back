@@ -36,6 +36,26 @@ my %running_backups;
 my $LOGDIR = "/var/log/tetras-back";
 my $CFGFILE = "/etc/tetras-back/configuration.pl";
 my $MAINFIFO = "/var/run/tetras-back.fifo";
+my %MESSAGES = (
+    0 => {
+        'status' => 'Sauvegarde reussie',
+        'message' => "La sauvegarde c'est terminée correctement, 
+        vous pouvez maintenant débrancher le disque dur.",
+    },
+    1 => {
+        'status' => 'Echec de la sauvegarde',
+        'message' => "La sauvegarde c'est terminée avec au moins une erreur et
+        est donc probablement incomplète, avez vous arraché le disque pendant
+        la sauvegarde ? Essayez de débrancher et rebrancher le disque, si
+        l'erreur persiste contactez vos administrateur.ice.s système au plus
+        vite",
+    },
+    2 => {
+        'status' => 'Arrachage pendant la sauvegarde',
+        'message' => "La sauvegarde est probablement corrompue, veuillez
+        rebancher le disque dès que possible",
+    },
+);
 
 # Read/SaveCfg snippet from
 # http://www.perlmonks.org/?displaytype=print;node_id=464358
@@ -121,30 +141,24 @@ sub notify(){
     for my $client (keys %{$CFG::CFG{CLIENTS}}){
         open CLI, ">", $client or die "Can't write to $client";
         print CLI "$json\n";
-        close CLI
+        close CLI;
     }
-}
-
-# Log the issue as alert and call end_backup
-sub handle_backup_failure($$$$$){
-    my ($uuid, $name, $subject, $message, $pid) = @_;
-    my $status="Echec de la sauvegarde";
-    $Logger->alert("$status: sur le disque '$name': '$subject'");
-    if ($pid != 0 ){
-        kill("SIGTERM", $pid);
-    }
-    end_backup($uuid, $status, $subject, $message);
 }
 
 # Send the mail and exit thread
-sub end_backup($$$$){
-    my ($uuid, $status, $subject, $message) = @_;
-    delete $running_backups{$uuid};
-    $CFG::CFG{DISKS}{KNOWN}{$uuid}{last_backup}="$status ".time();
-    do_sendmail("$subject", $message);
-    save_config();
-    notify();
-    threads->exit();
+sub end_backup($$){
+    my ($name, $errorcode) = @_;
+    $Logger->debug("Fin de sauegarde sur '$name', code '$errorcode'");
+    my $status=$MESSAGES{$errorcode}{status};
+    my $subject="$status : sur le disque '$name'";
+    if($errorcode == 0){
+        $Logger->info($subject);
+    }else{
+        $Logger->alert($subject);
+    }
+    do_sendmail("$subject", $MESSAGES{$errorcode}{message});
+    kill("SIGUSR2", $$);
+    return $status." ".time();
 }
 
 # Trigger a backup on device give in argument ex /dev/sdc1
@@ -153,12 +167,8 @@ sub do_backup($){
     my $uuid = get_uuid($disc);
     my $name = $CFG::CFG{DISKS}{KNOWN}{$uuid}{name};
     my $pid=0;
-    $SIG{KILL} = sub {
-        handle_backup_failure($uuid, $name, "Disque arraché pendant la sauvegarde",
-            "La sauvegarde est probablement corrompue, veuillez rebancher le
-            disque dès que possible", $pid);
-    };
     my $error = 0 ;
+    $SIG{KILL} = sub { $error=2; if($pid!=0){kill("SIGTERM", $pid);}};
     $Logger->info("Demarrage de la sauvegarde sur le disque: $name");
     # Start each script
     for my $scr (keys %{$CFG::CFG{'SCRIPTS'}}){
@@ -170,24 +180,16 @@ sub do_backup($){
             $Logger->info($line);
         }
         if (! close(SCRLOG)){
-            $error = 1;
+            if ($error == 2){
+                last;
+            }else{
+                $error = 1;
+            }
         }
         $Logger->info("Script de sauvegarde $scr terminé");
     }
-    my $message = "";
-    if( $error == 0 ){
-        # prepare message and end backup
-        my $status = "Sauvegarde reussie";
-        my $subject = "$status sur le disque $name";
-        $message = "La sauvegarde c'est terminée correctement, vous pouvez maintenant débrancher le disque dur.";
-        $Logger->info($subject);
-        end_backup($uuid, $status, $subject, $message);
-    } else{
-        # handle error
-        handle_backup_failure($uuid, $name, "Erreur durant la sauvegarde",
-            "La sauvegarde c'est terminée avec au moins une erreur et est donc probablement incomplète, avez vous arraché le disque pendant la sauvegarde ? Essayez de débrancher et rebrancher le disque, si l'erreur persiste contactez vos administrateur.ice.s système au plus vite", 0);
-    }
-    # Never reached
+    # Tell main thread that we are done
+    return end_backup($name, $error);
 }
 
 # Send subject, message by email to root
@@ -244,18 +246,26 @@ sub format_log{
 
 # Main loop
 sub start_daemon(){
-    # Read config
-    if (my $err = ReadCfg($CFGFILE)) {
-        do_stop("Erreur '$err'", 1)
-    }
-
     # Create the main fifo
     mkfifo($MAINFIFO,0666) or die "Impossible de créer la file $MAINFIFO, est-ce qu'un daemon tourne déjà ?";
     system("chmod 0666 $MAINFIFO");
     # Exit properly in case of issue
     $SIG{INT} = sub { do_stop("Signal SIGINT reçu",0)};
     $SIG{USR1} = sub { do_stop("Signal SIGUSR1 reçu",0)};
-    $SIG{CHLD} = sub { save_config(); notify(); };
+    $SIG{USR2} = sub {
+        # give a chance to the backup thread to finish
+        sleep(2);
+        for my $uuid (keys %running_backups){
+            if($running_backups{$uuid}->is_joinable()){
+                my $status = $running_backups{$uuid}->join();
+                $Logger->debug("thread join: $status");
+                $CFG::CFG{DISKS}{KNOWN}{$uuid}{last_backup}=$status;
+                delete $running_backups{$uuid};
+            }
+        }
+        save_config();
+        notify();
+    };
     open FIFO, "+<", $MAINFIFO or die "Can't read from $MAINFIFO";
     # prepare logs
     mkdir $LOGDIR;
@@ -271,6 +281,11 @@ sub start_daemon(){
     $SIG{__DIE__}  = sub {do_stop(shift,1)};
     $SIG{__WARN__} = sub {$Logger->warning(shift)};
     $Logger->info("Daemon opérationnel");
+
+    # Read config
+    if (my $err = ReadCfg($CFGFILE)) {
+        do_stop("Erreur '$err'", 1)
+    }
 
     # Read fifo
     while(my $line = <FIFO>){
@@ -301,11 +316,13 @@ sub start_daemon(){
             if(exists($CFG::CFG{DISKS}{KNOWN}{$uuid})){
                 $CFG::CFG{DISKS}{KNOWN}{$uuid}{'last_seen'}=time();
             }
-            save_config();
-            notify();
             if (exists($running_backups{$uuid})){
+                $Logger->alert("Arrachement de disque");
+                # Kill the thread
                 $running_backups{$uuid}->kill('SIGKILL');
             }
+            save_config();
+            notify();
         }elsif ($line =~ /^SAVE ([^ ]*) (.*)$/){
             # Add the disc as known
             my $uuid=$1;
