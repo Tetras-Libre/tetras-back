@@ -24,11 +24,12 @@
     $format = 'd-m-Y H:i:s';
     //var_dump($conf);
 ?>
-<h1> Disques </h1>
-<h2> Disques Connectes </h2>
+<h2> Disques </h2>
+<h3> Disques Connectes </h3>
 <div id='connected'>
+<div class="scroll">
 <table>
-<tr><th>Device</th><th>Identifiant unique</th><th>Enregistrer</th></tr>
+<tr><th>Device</th><th>Identifiant unique</th><th>Actions</th></tr>
 
 <?php
     //One line by connected entry
@@ -48,10 +49,15 @@
 <?php endforeach ?>
 </table>
 </div>
-<h2> Disques Connus </h2>
+</div>
+<h3> Disques Connus </h3>
 <div id='known'>
+<div class="scroll">
 <table>
-<tr><th>Nom</th><th>Identifiant unique</th><th>Derniere connexion</th><th>Derniere sauvegarde</th><th>Delencher la sauvegarde</th><th>Oublier le disque</th></tr>
+<tr>
+<th>Nom</th><th>Identifiant unique</th><th>Derniere connexion</th>
+<th>Derniere sauvegarde</th><th>Actions</th>
+</tr>
 <?php
 foreach ($conf['KNOWN'] as $uuid => $value) :
     $name=$value['name'];
@@ -95,8 +101,6 @@ foreach ($conf['KNOWN'] as $uuid => $value) :
             <input type="hidden" name="action" value="trigger">
             <input type="submit" value="Sauvegarder">
         </form>
-    </td>
-    <td>
         <form action="actions.php" method="post">
             <input type="hidden" name="name" value="<?php echo $name ?>">
             <input type="hidden" name="uuid" value="<?php echo $uuid ?>">
@@ -108,4 +112,5 @@ foreach ($conf['KNOWN'] as $uuid => $value) :
 </tr>
 <?php endforeach ?>
 </table>
+</div>
 </div>

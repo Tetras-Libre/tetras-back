@@ -1,0 +1,149 @@
+body {
+    font-family: sans;
+    width: 90%;
+    max-width : 75em; /*1200px*/
+    height: 100%;
+    margin: auto;
+    color: #2e3436;
+    background-color:#E5E4E2;
+    padding : 1%;
+}
+/*Boite principale*/
+div#box {
+    background-color:#ffffff;
+    padding: 0% 2% 3% 2%;
+    border-radius: 0.7em;
+}
+div#log{
+    padding-left: 10%;
+    width : 90%;
+    max-height : 400px;
+}
+div.scroll{
+    overflow: auto;
+}
+/*Contenu*/
+div#content {
+    padding: 1.5% 3%;
+}
+
+div.hllinks{
+    padding: 1% 3%;
+}
+
+
+div.right{
+    float:right;
+    width:49%;
+}
+div.left{
+    float:left;
+    width:49%;
+}
+/* Footer*/
+div#foot {
+    color: gray;
+    font-size: small;
+    border-top : thin solid;
+    margin : 5%;
+}
+
+
+/* images floattantes*/
+div#logos img{
+    max-height : 100px;
+    max-width : 150px;
+    vertical-align: middle;
+}
+img.middle {
+    vertical-align:middle;
+}
+img.middle-right {
+    vertical-align:middle;
+    float:right;
+}
+img.right{
+    float : right;
+    border : thin solid;
+    box-shadow: 0.1em 0.1em 0.2em 0.2em #bbbabb;
+    margin : auto auto 5% 5%;
+    padding : 0.1em; 
+}
+/*Comportement des liens*/
+a
+{
+    color: #2e3436;
+}
+
+a:visited
+{
+    color : #aaa9aa;
+}
+a:hover
+{
+    text-decoration : underline ;
+    color : #888788;
+}
+/* Titres*/
+div.titlebox
+{
+}
+div#Title
+{
+    text-align : center;
+    font-weight : bold ;
+    background-color : #eeecee;
+    border-radius : 0.5em;
+    padding : 1%;
+    margin: 5% 20%;
+}
+h1
+{
+    text-align : center;
+    font-weight : bold ;
+    background-color : #eeecee;
+    border-radius : 0.5em;
+    padding : 2%;
+    margin: 5% 20% 10% 20%;
+}
+h2
+{
+    font-size : large;
+    text-align:center;
+    background-color : #eeecee;
+    border-radius : 0.5em;
+    margin : 5% 25%;
+    padding : 1.5%;
+}
+h3
+{
+    font-size : large;
+    text-align: left;
+    margin : 5%;
+}
+/* text*/
+.right {
+    text-align : right;
+}
+
+/*tables*/
+
+table {
+    width: 100%;
+    text-align : left;
+}
+
+th {
+    height: 50px;
+    background-color: #eeecee;
+}
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+}
+tr:nth-child(odd){
+    background-color: #f2f2f2
+}
+tr:hover {
+    background-color: #f5f5f5
+}

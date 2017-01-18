@@ -18,12 +18,17 @@
      * along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
 
-    $output = shell_exec('tail -n 100 /var/log/tetras-back/main.log');
+    $output = file('/var/log/tetras-back/main.log');
+    $lines = array_reverse($output);
 ?>
-<h1> Logs </h1>
+<h2> Logs </h2>
+<div class="scroll">
+<div id="log">
 <pre><code>
 <?php
 // TODO: revert output
-echo "$output";
+echo implode($lines);
 ?>
 </code></pre>
+</div>
+</div>

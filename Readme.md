@@ -122,6 +122,15 @@ La device etant quelque chose du genre `/dev/sdb1`
 ### Todo
 
 + [ ] Web interface
+    + [X] Link to actions
+    + [X] Actions
+    + [X] Reverse + scroll for log
+    + [ ] htaccess / htpassword
+    + [ ] vhost apache2
+    + [X] CSS
+    + [ ] encodage
+    + [ ] Bouton telecharger
++ [ ] Verify reboot systemd
 + [x] Sendmail after backup or on fail
 + [x] Daemon
 + [x] Udev rules

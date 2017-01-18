@@ -1,23 +1,13 @@
-<?php
-    /*
-     * Copyright (C) 2017  Tetras Libre <contact@tetras-libre.fr>
-     * Author: Beniamine, David <David.Beniamine@tetras-libre.fr>
-     *         Coudurier, Felix <web@demo-tic.org>
-     *
-     * This program is free software: you can redistribute it and/or modify
-     * it under the terms of the GNU General Public License as published by
-     * the Free Software Foundation, either version 3 of the License, or
-     * (at your option) any later version.
-     *
-     * This program is distributed in the hope that it will be useful,
-     * but WITHOUT ANY WARRANTY; without even the implied warranty of
-     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     * GNU General Public License for more details.
-     *
-     * You should have received a copy of the GNU General Public License
-     * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-     */
-?>
+ <!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="author" content="David Beniamine and Felix Coudurier">
+<link rel="stylesheet" href="style.css"/>
+<title>Tetras Back</title>
+<div id="box">
+<div id="content">
+<?php include("header.php") ?>
 <p>
 <?php
     extract($_POST);
@@ -49,3 +39,8 @@
 <p>
 <a href="index.php">Retour a l'accueil</a>
 </p>
+<?php
+    include("footer.php");
+?>
+</div>
+</div>
