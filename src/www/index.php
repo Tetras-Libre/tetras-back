@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Tetras Back</title>
-<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
 <meta charset="UTF-8">
 <meta name="author" content="David Beniamine and Felix Coudurier">
 <link rel="stylesheet" href="style.css"/>
