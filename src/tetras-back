@@ -244,9 +244,7 @@ sub format_log{
     my %args = @_;
     my $date = strftime("%F %X", localtime());
     my $string = "$date\t$args{level}\t$args{message}\n";
-    if( not utf8::is_utf8($string)){
-        utf8::encode($string);
-    }
+    utf8::encode($string);
     return $string;
 }
 

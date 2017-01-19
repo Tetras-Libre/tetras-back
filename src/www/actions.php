@@ -31,7 +31,7 @@
             $args = "--forget ".escapeshellarg($uuid);
             break;
     }
-    echo utf8_encode($message);
+    echo $message;
     if (strcmp($args, "")){
         //echo "<p>execution de '$cmd $args'</p>";
         shell_exec("$cmd $args");
