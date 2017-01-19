@@ -412,7 +412,7 @@ if ($arguments->get_attr('start')){
         my $th=threads->create('send_command', "STOP");
         # Timeout
         sleep(5);
-        if($th->is_running() or -e $MAINFIFO){
+        if($th->is_running()){
             print "Le daemon de repond pas, suppression de la file $MAINFIFO\n";
             unlink $MAINFIFO;
             # Avoid perl to yelling at us because of the unjoined thread
