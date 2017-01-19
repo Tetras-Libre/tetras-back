@@ -88,7 +88,7 @@ rule:
 	@echo "Restarting udev"
 	systemctl restart udev
 
-web: clean-web
+web:
 	@echo "Copying web files"
 	cp -r src/www/ $(WEB_PREFIX)/$(NAME)
 	chown -R www-data:www-data $(WEB_PREFIX)/$(NAME)
