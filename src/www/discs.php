@@ -41,7 +41,7 @@
 <form action="actions.php" method="post">
 <input type="hidden" name="uuid" value="<?php echo $uuid ?>">
 <input type="hidden" name="action" value="save">
-<input type="text"   name="name" placeholder="nom">
+<input type="text"   name="name" placeholder="Entrez un nom">
 <input type="submit" value="Enregistrer">
 </form>
 </td>
