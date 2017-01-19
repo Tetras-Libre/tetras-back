@@ -205,11 +205,11 @@ sub do_sendmail($$){
     );
     $msg->attr("content-type.charset" => "UTF-8");
     $msg->attach(
-        Type     => 'TEXT',
-        Data     => $message,
+        Type    => 'text/plain; charset=UTF-8',
+        Data    => utf8::encode($message),
     );
     # Add your text message.
-    $msg->attach(Type        => 'text',
+    $msg->attach(Type        => 'text/plain; charset=UTF-8',
                  Path        => "$LOGDIR/message.log",
                  Filename    => 'message.log',
                  Disposition => 'inline'
