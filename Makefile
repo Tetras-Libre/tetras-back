@@ -90,7 +90,8 @@ rule:
 
 web:
 	@echo "Copying web files"
-	cp -r src/www/ $(WEB_PREFIX)/$(NAME)
+	mkdir -p $(WEB_PREFIX)/$(NAME)
+	cp -r src/www/* $(WEB_PREFIX)/$(NAME)/
 	chown -R www-data:www-data $(WEB_PREFIX)/$(NAME)
 	touch $(WEB_CLIENT)
 	tetras-back --register $(WEB_CLIENT)
