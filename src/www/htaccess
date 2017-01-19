@@ -1,4 +1,4 @@
-AuthUserFile ./.htpasswd
+AuthUserFile /var/www/tetras-back/.htpasswd
 AuthType Basic
 AuthName "Tetras-Back"
 Require valid-user
