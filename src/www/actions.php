@@ -15,22 +15,23 @@
     $cmd = "/usr/local/sbin/tetras-back";
     switch($action){
         case "save" :
-            echo "Enregistrement du disque $uuid avec le nom $name";
+            $message = "Enregistrement du disque '$uuid' sous le nom '$name'";
             $args = "--save ".escapeshellarg($uuid)."=".escapeshellarg($name);
             break;
         case "trigger" :
             if ( !strcmp($dev,"")){
-                echo "Impossible de lancer une sauvegarde sur le disque $name car il n'est pas connecte";
+                $message = "Impossible de lancer une sauvegarde sur le disque '$name' car il n'est pas connecté";
             }else{
-                echo "Declanchement de sauvegarde sur le disque  $name ";
+                $message = "Déclenchement de sauvegarde sur le disque '$name'";
                 $args = "--plug ".escapeshellarg($dev);
             }
             break;
         case "forget":
-            echo "Desenregistrement du disque $name";
+            $message = "Désenregistrement du disque $name";
             $args = "--forget ".escapeshellarg($uuid);
             break;
     }
+    echo utf8_encode($message);
     if (strcmp($args, "")){
         //echo "<p>execution de '$cmd $args'</p>";
         shell_exec("$cmd $args");

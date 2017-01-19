@@ -38,8 +38,8 @@ my $CFGFILE = "/etc/tetras-back/configuration.pl";
 my $MAINFIFO = "/var/run/tetras-back.fifo";
 my %MESSAGES = (
     0 => {
-        'status' => 'Sauvegarde reussie',
-        'message' => "La sauvegarde c'est terminée correctement, 
+        'status' => 'Sauvegarde réussie',
+        'message' => "La sauvegarde c'est terminée correctement,
         vous pouvez maintenant débrancher le disque dur.",
     },
     1 => {
@@ -241,7 +241,9 @@ sub get_uuid_connected($){
 sub format_log{
     my %args = @_;
     my $date = strftime("%F %X", localtime());
-    return "$date\t$args{level}\t$args{message}\n";
+    my $string = "$date\t$args{level}\t$args{message}\n";
+    utf8::encode($string);
+    return $string;
 }
 
 # Main loop
@@ -308,7 +310,7 @@ sub start_daemon(){
                 notify();
             }
         }elsif ($line =~ /^UNPLUG (.*)$/){
-            $Logger->info("Disque retire $1");
+            $Logger->info("Disque retiré $1");
             my $uuid = get_uuid_connected($1);
             # Remove uuid from connected
             delete $CFG::CFG{DISKS}{CONNECTED}{$uuid};

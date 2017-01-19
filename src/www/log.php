@@ -26,7 +26,6 @@
 <div id="log">
 <pre><code>
 <?php
-// TODO: revert output
 echo implode($lines);
 ?>
 </code></pre>
