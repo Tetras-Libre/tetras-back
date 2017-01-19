@@ -168,16 +168,16 @@ sub do_backup($){
     my $name = $CFG::CFG{DISKS}{KNOWN}{$uuid}{name};
     my $pid=0;
     my $error = 0 ;
-    $SIG{KILL} = sub { $error=2;};
+    $SIG{KILL} = sub {$Logger->alert("Tué pendant la sauvegarde"); $error=2; kill("SIGTERM", $pid);};
     $Logger->info("Demarrage de la sauvegarde sur le disque: $name");
     # Start each script
     for my $scr (keys %{$CFG::CFG{'SCRIPTS'}}){
         my $cmd="$CFG::CFG{'scriptdir'}/$scr $CFG::CFG{'SCRIPTS'}{$scr} $disc";
         $Logger->info("Lancement du script de sauvegarde '$CFG::CFG{'scriptdir'}/$scr'");
         $pid = open SCRLOG, '-|', "$cmd 2>&1";
-        $SIG{KILL} = sub { $error=2; kill("SIGTERM", $pid);};
         # Forward script output
         while (my $line = <SCRLOG>){
+            utf8::decode($line);
             $Logger->info($line);
         }
         if (! close(SCRLOG)){
@@ -189,7 +189,6 @@ sub do_backup($){
         }
         $Logger->info("Script de sauvegarde $scr terminé");
     }
-    $SIG{KILL} = sub { $error=2;};
     # Tell main thread that we are done
     return end_backup($name, $error);
 }
@@ -321,7 +320,7 @@ sub start_daemon(){
                 $CFG::CFG{DISKS}{KNOWN}{$uuid}{'last_seen'}=time();
             }
             if (exists($running_backups{$uuid})){
-                $Logger->alert("Arrachement de disque");
+                $Logger->alert("Arrachage de disque");
                 # Kill the thread
                 $running_backups{$uuid}->kill('SIGKILL');
             }
