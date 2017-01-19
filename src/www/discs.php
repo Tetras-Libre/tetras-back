@@ -36,7 +36,7 @@
     //add save button + text field that triggers tetras-back \-\-save uuid=name
     foreach ($conf['CONNECTED'] as $uuid => $dev) :
 ?>
-<tr><td><?php echo utf8_encode($dev) ?></td><td><?php echo utf8_encode($uuid) ?></td>
+<tr><td><?php echo $dev ?></td><td><?php echo $uuid ?></td>
 <td>
 <form action="actions.php" method="post">
 <input type="hidden" name="uuid" value="<?php echo $uuid ?>">
@@ -89,10 +89,10 @@ foreach ($conf['KNOWN'] as $uuid => $value) :
     }
 ?>
 <tr>
-    <td><?php echo utf8_encode($name) ?></td>
-    <td><?php echo utf8_encode($uuid) ?></td>
-    <td><?php echo utf8_encode($last_seen) ?></td>
-    <td><?php echo utf8_encode($last_backup_state) ?></td>
+    <td><?php echo $name ?></td>
+    <td><?php echo $uuid ?></td>
+    <td><?php echo $last_seen ?></td>
+    <td><?php echo $last_backup_state ?></td>
     <td>
         <form action="actions.php" method="post">
             <input type="hidden" name="name" value="<?php echo $name ?>">

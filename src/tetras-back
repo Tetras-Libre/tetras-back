@@ -197,6 +197,8 @@ sub do_backup($){
 sub do_sendmail($$){
     my ($subject, $message) = @_;
 
+    utf8::encode($subject);
+    utf8::encode($message);
     my $msg = MIME::Lite->new(
         From     => 'tetras-back',
         To       => 'root',
@@ -206,7 +208,7 @@ sub do_sendmail($$){
     $msg->attr("content-type.charset" => "UTF-8");
     $msg->attach(
         Type    => 'text/plain; charset=UTF-8',
-        Data    => utf8::encode($message),
+        Data    => $message,
     );
     # Add your text message.
     $msg->attach(Type        => 'text/plain; charset=UTF-8',
