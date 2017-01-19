@@ -11,7 +11,7 @@
 <p>
 <?php
     extract($_POST);
-    echo "actions '$action', uuid '$uuid', name '$name', dev '$dev'<br/>";
+    //echo "actions '$action', uuid '$uuid', name '$name', dev '$dev'<br/>";
     $cmd = "/usr/local/sbin/tetras-back";
     switch($action){
         case "save" :
@@ -32,6 +32,7 @@
             break;
     }
     if (strcmp($args, "")){
+        //echo "<p>execution de '$cmd $args'</p>";
         shell_exec("$cmd $args");
     }
 ?>
