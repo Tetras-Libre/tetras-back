@@ -25,7 +25,7 @@
     //var_dump($conf);
 ?>
 <h2> Disques </h2>
-<h3> Disques Connectes </h3>
+<h3> Disques Connectés </h3>
 <div id='connected'>
 <div class="scroll">
 <table>
