@@ -75,6 +75,7 @@ daemon: rule
 	@echo "Creating systemd service"
 	cp src/service/$(NAME).service $(SERVICE_DIR)/
 	mkdir -p /var/log/tetras-back
+	touch /var/log/tetras-back/main.log
 	chown -R root:root /var/log/tetras-back
 	chmod -R 644 /var/log/tetras-back/*
 	chmod  755 /var/log/tetras-back/
