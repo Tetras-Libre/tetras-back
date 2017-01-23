@@ -23,7 +23,7 @@ $(function() {
         $.get('log.php', function(data) {
             $('#mainlog').html(data);
         });
-    }, 5000);
+    }, 15000);
 });
 </script>
 <script>
