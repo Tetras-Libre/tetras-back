@@ -1,3 +1,6 @@
+Ce dépôt est un mirroir uniquement, les rapport d'erreur se font sur [le
+gitlab de Tetras Libre](https://gitlab.tetras-libre.fr/tetras-libre/Tetras-back)
+
 # Tetras-back
 
 Tetras-back est un logiciel libe, conçu pour sauvegarder des serveurs d'auto
