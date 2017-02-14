@@ -36,7 +36,7 @@ premier(){
 
 # Supprime la sauvegarde la plus ancienne
 supprimer_anciennes_sauvegardes(){
-    dir=`premier \`/bin/ls $dest/..\``
+    dir=`premier \`/bin/ls $dest/.. | grep $postfix \``
     [ -z "$dir" ] && return 1
     do_log "Plus de place suppression de la sauvegarde la plus ancienne: $dir"
     rm -rf $dest/../$dir
