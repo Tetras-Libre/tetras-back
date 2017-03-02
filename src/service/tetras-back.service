@@ -8,7 +8,7 @@ User=root
 ExecStop=/usr/local/sbin/tetras-back --stop
 ExecStartPre=rm -f /var/run/tetras-back.fifo
 ExecStart=/usr/local/sbin/tetras-back --start
-Restart=on-fail
+Restart=on-failure
 
 
 [Install]
