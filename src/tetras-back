@@ -221,7 +221,7 @@ sub do_sendmail($$){
         $msg->send;
         $Logger->info("Etat envoyé par email");
     }catch{
-        $Loggger->alert("Echec lors de l'envoi du mail: '$_'");
+        $Logger->alert("Echec lors de l'envoi du mail: '$_'");
     };
 }
 
