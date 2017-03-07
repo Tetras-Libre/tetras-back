@@ -30,6 +30,7 @@ use Data::Dumper;
 use Cpanel::JSON::XS qw(encode_json);
 use Log::Dispatch;
 use Getopt::ArgParse;
+use Try::Tiny;
 
 my $Logger;
 my %running_backups;
@@ -216,8 +217,12 @@ sub do_sendmail($$){
                  Filename    => 'message.log',
                  Disposition => 'inline'
     );
-    $msg->send;
-    $Logger->info("Etat envoyé par email\n");
+    try{
+        $msg->send;
+        $Logger->info("Etat envoyé par email");
+    }catch{
+        $Loggger->alert("Echec lors de l'envoi du mail: '$_'");
+    };
 }
 
 # Retrieve uuid of given device
