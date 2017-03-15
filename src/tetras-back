@@ -281,7 +281,8 @@ sub start_daemon(){
     mkdir $LOGDIR;
     $Logger = Log::Dispatch->new(
         outputs => [
-            [ 'File',   min_level => 'debug', filename => "$LOGDIR/main.log" ],
+            [ 'File',   min_level => 'debug', filename => "$LOGDIR/main.log",
+                close_after_write => 1 ],
             [ 'File',   min_level => 'info',  filename => "$LOGDIR/message.log" ],
             [ 'Screen', min_level => 'debug', stderr => 0, newline =>0 ],
         ],
