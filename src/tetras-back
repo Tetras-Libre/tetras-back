@@ -279,11 +279,11 @@ sub start_daemon(){
     open FIFO, "+<", $MAINFIFO or die "Can't read from $MAINFIFO";
     # prepare logs
     mkdir $LOGDIR;
+    # The main file is closed after each write to avoid issues with logrotate
     $Logger = Log::Dispatch->new(
         outputs => [
             [ 'File',   min_level => 'debug', filename => "$LOGDIR/main.log",
                 close_after_write => 1 ],
-            [ 'File',   min_level => 'info',  filename => "$LOGDIR/message.log" ],
             [ 'Screen', min_level => 'debug', stderr => 0, newline =>0 ],
         ],
     );
@@ -313,6 +313,9 @@ sub start_daemon(){
                 $CFG::CFG{DISKS}{KNOWN}{$uuid}{'last_seen'}=time();
                 save_config();
                 notify();
+                $Logger->remove("message");
+                $Logger->add(new Log::Dispatch::File(name => "message",
+                        min_level => 'info',  filename => "$LOGDIR/message.log"));
                 $running_backups{$uuid} = threads->create('do_backup', $dev);
             }else{
                 save_config();
