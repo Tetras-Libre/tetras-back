@@ -17,24 +17,8 @@
 <div id="mainlog">
     <?php require './log.php'; ?>
 </div>
-<script>
-$(function() {
-    var myInterval = setInterval(function(){
-        $.get('log.php', function(data) {
-            $('#mainlog').html(data);
-        });
-    }, 5000);
-});
-</script>
-<script>
-$(function() {
-    var myInterval0 = setInterval(function(){
-        $.get('discs.php', function(data) {
-            $('#discs').html(data);
-        });
-    }, 15000);
-});
-</script>
+<script src='./mainlog.js'></script>
+<script src='./discs.js'></script>
 <?php
     include("footer.php");
 ?>

@@ -69,6 +69,13 @@ img.right{
     margin : auto auto 5% 5%;
     padding : 0.1em; 
 }
+img.top-left{
+    float : left;
+}
+img.top-right{
+    float: right;
+    margin-top 25px;
+}
 /*Comportement des liens*/
 a
 {
