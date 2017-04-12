@@ -212,10 +212,15 @@ do
     ret=$?
     while [ $ret -ne 0 ]
     do
-        supprimer_anciennes_sauvegardes
-        test_and_fail $? "Plus d'espace sur le disque et pas d'ancienne sauvegarde a supprimer"
-        $action
-        ret=$?
+        if [ `df --output=avail .  | sed 1d` -lt $((1024*1024)) ]
+        then
+            supprimer_anciennes_sauvegardes
+            test_and_fail $? "Plus d'espace sur le disque et pas d'ancienne sauvegarde a supprimer"
+            $action
+            ret=$?
+        else
+            test_and_fail 1 "l'action '$action' a planté innopinement"
+        fi
     done
     nom=${action/_/ }
     do_log "$nom reussie"
