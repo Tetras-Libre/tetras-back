@@ -70,10 +70,21 @@ sauvegarde_serveur(){
         if [ -d "$backup_path" ]
         then
             /bin/ls -dt $backup_path/* | tail -n +11 | xargs rm -rf
+        else
+            do_log "Dossier de sauvegarde gitlab non trouvé, pensez à supprimer manuellement les anciennes sauvegardes"
         fi
     fi
     do_log "Creation de l'archive configuration serveur"
     tar czf$vopt $dest/serveur.tgz $srv_directories
+    ret=$?
+    if [ $ret -eq 1 ]
+    then
+        # only warn on tar return code 1
+        do_log "Attention: des fichiers on été modifié durant la sauvegarde de l'archive serveur"
+        return 0
+    else
+        return $ret
+    fi
 }
 
 sauvegarde_donnees(){
