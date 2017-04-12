@@ -66,6 +66,11 @@ sauvegarde_serveur(){
         # the backup should be in /var/opt/gitlab/backups thus in srv_directories
         do_log "Creation de la sauvegarde gitlab"
         /usr/bin/gitlab-rake $voptminus gitlab:backup:create
+        backup_path=`grep "'backup_path'" /etc/gitlab/gitlab.rb  | sed 's/^.*= "\(.*\)"$/\1/'`
+        if [ -d $backup_path ]
+        then
+            /bin/ls -dt $backup_path | tail -n +11 | xargsrm -rf
+        fi
     fi
     do_log "Creation de l'archive configuration serveur"
     tar czf$vopt $dest/serveur.tgz $srv_directories
