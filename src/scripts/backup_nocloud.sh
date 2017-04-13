@@ -75,8 +75,10 @@ sauvegarde_serveur(){
         fi
     fi
     do_log "Creation de l'archive configuration serveur"
+    [ ! -z "$SERVICES" ] && systemctl stop $SERVICES
     tar czf$vopt $dest/serveur.tgz $srv_directories
     ret=$?
+    [ ! -z "$SERVICES" ] && systemctl start $SERVICES
     if [ $ret -eq 1 ]
     then
         # only warn on tar return code 1
@@ -105,7 +107,7 @@ sauvegarde_seafile(){
 
 usage(){
     echo "Utilisation $0 [options] device"
-    echo "Device doit etre un disque non monte"
+    echo "Device doit etre un disque non monté"
     echo "Options"
     echo "  -h | --help             Affiche cette aide et quitte"
     echo "  -v | --verbose          Active le mode verbeux"
@@ -114,9 +116,14 @@ usage(){
     echo "  -m | --mysql            Sauvegarde mysql (implique --config)"
     echo "  -c | --config           Sauvegarde le serveur ($srv_directories)"
     echo "  -g | --gitlab           Sauvegarde gitlab (implique --config)"
-    echo "  -u | --unifi            Sauvegarde unifi (/var/lib/unifi, implique --config)"
+    echo "  -u | --unifi            Sauvegarde unifi (/var/lib/unifi, implique
+                                    --config)"
     echo "  -s | --seafile  host    Sauvegarde seafile host  (seafile fuse)"
-    echo "  -e | --encfs    pass    Use encfs protected directories with given password"
+    echo "  -e | --encfs    pass    Utilise des dossiers chiffrés encfs,
+                                    protégés par le mot de passe donné"
+    echo "  -i | --interrupt list   Interrompt les services donnés (liste
+                                    séparé par des virgules) durant la création
+                                    de l'archive tar."
 }
 
 dest=/mnt/backup
@@ -135,7 +142,7 @@ for arg in "$@"; do
   shift
   set -- "$@" `echo $arg | sed 's/^-\(-.\).*$/\1/'`
 done
-optspec=":hvdcgus:mpe:"
+optspec=":hvdcgus:mpe:i:"
 while getopts "$optspec" optchar; do
     case "${optchar}" in
         h)
@@ -175,6 +182,9 @@ while getopts "$optspec" optchar; do
         e)
             encfs=true
             ENCPASS="$OPTARG"
+            ;;
+        i)
+            SERVICES="${OPTARG//,/ }"
             ;;
         *)
             echo "Option inconnue -$optchar"
