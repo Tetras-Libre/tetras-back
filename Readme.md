@@ -6,6 +6,9 @@ gitlab de Tetras Libre](https://gitlab.tetras-libre.fr/tetras-libre/Tetras-back)
 Tetras-back est un logiciel libe, conçu pour sauvegarder des serveurs d'auto
 hebergements sur des disques dur externes.
 
+
+Une [documentation complète](http://documentation.demo-tic.org/service_oel:systeme_de_sauvegardes) est trouvable sur le wiki de nos partenaires.
+
 ## Prérequis
 
 Tetras-Back a été testé sur debian Jessie et Testing, pour l'utiliser, vous
@@ -64,7 +67,7 @@ L'administrateur est notifié des sauvegardes et des echecs par email.
 
 ## Interface Web
 
-L'interface web n'est pas encore implémentée
+Voir [la documentation complète](http://documentation.demo-tic.org/service_oel:systeme_de_sauvegardes)
 
 ## Scripts de sauvegarde fournis
 
@@ -138,16 +141,16 @@ La device etant quelque chose du genre `/dev/sdb1`
 
 ### Todo
 
-+ [ ] Web interface
++ [x] Web interface
     + [X] Link to actions
     + [X] Actions
     + [X] Reverse + scroll for log
     + [x] htaccess / htpassword
-    + [ ] vhost apache2
+    + [x] vhost apache2
     + [X] CSS
-    + [ ] encodage
+    + [x] encodage
     + [ ] Bouton telecharger
-+ [ ] Verify reboot systemd
++ [x] Verify reboot systemd
 + [x] Sendmail after backup or on fail
 + [x] Daemon
 + [x] Udev rules
