@@ -17,14 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+do_clean(){
+    do_log "Demontage du disque veuillez patienter avant de le retirer"
+    if $encfs
+    then
+        fusermount -zu $encfsmount
+    fi
+    umount -f $dev
+}
 
 # If $1 is not 0, exit with message $2
 test_and_fail(){
     if [ $1 -ne 0 ]
     then
         echo "Echec de la sauvegarde : '$2'"
-        sync
-        umount -f $dev
+        do_clean
         exit $1
     fi
 }
@@ -257,10 +264,5 @@ done
 do_log "Resultats de la sauvegarde:"
 du -h -d 1 $dest/
 df -h $dev
-do_log "Demontage du disque veuillez patienter avant de le retirer"
-if $encfs
-then
-    fusermount -u $encfsmount
-fi
-umount $dev
+do_clean
 do_log "Sauvegarde terminee le `date`"
